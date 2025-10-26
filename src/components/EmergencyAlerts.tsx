@@ -6,10 +6,10 @@ import { Input } from './ui/input';
 import { Select } from './ui/select';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { 
-  AlertTriangle, 
-  Plus, 
-  Search, 
+import {
+  AlertTriangle,
+  Plus,
+  Search,
   Filter,
   Eye,
   Edit,
@@ -38,10 +38,10 @@ export function EmergencyAlerts() {
 
   const filteredAlerts = alerts.filter(alert => {
     const matchesSearch = alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         alert.location.toLowerCase().includes(searchTerm.toLowerCase());
+      alert.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSeverity = filterSeverity === 'all' || alert.severity === filterSeverity;
     const matchesStatus = filterStatus === 'all' || alert.status === filterStatus;
-    
+
     return matchesSearch && matchesSeverity && matchesStatus;
   });
 
@@ -53,7 +53,7 @@ export function EmergencyAlerts() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
+
     setAlerts([alert, ...alerts]);
     setNewAlert({
       title: '',
@@ -66,8 +66,8 @@ export function EmergencyAlerts() {
   };
 
   const handleUpdateAlertStatus = (alertId: string, newStatus: Alert['status']) => {
-    setAlerts(alerts.map(alert => 
-      alert.id === alertId 
+    setAlerts(alerts.map(alert =>
+      alert.id === alertId
         ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() }
         : alert
     ));
@@ -119,17 +119,17 @@ export function EmergencyAlerts() {
                 <label className="text-sm text-gray-700 mb-1 block">Title</label>
                 <Input
                   value={newAlert.title}
-                  onChange={(e) => setNewAlert({...newAlert, title: e.target.value})}
+                  onChange={(e) => setNewAlert({ ...newAlert, title: e.target.value })}
                   placeholder="Alert title"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Severity</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newAlert.severity}
-                    onChange={(e) => setNewAlert({...newAlert, severity: e.target.value as Alert['severity']})}
+                    onChange={(e) => setNewAlert({ ...newAlert, severity: e.target.value as Alert['severity'] })}
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -139,10 +139,10 @@ export function EmergencyAlerts() {
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Type</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newAlert.type}
-                    onChange={(e) => setNewAlert({...newAlert, type: e.target.value as Alert['type']})}
+                    onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value as Alert['type'] })}
                   >
                     <option value="natural">Natural</option>
                     <option value="man-made">Man-made</option>
@@ -155,7 +155,7 @@ export function EmergencyAlerts() {
                 <label className="text-sm text-gray-700 mb-1 block">Location</label>
                 <Input
                   value={newAlert.location}
-                  onChange={(e) => setNewAlert({...newAlert, location: e.target.value})}
+                  onChange={(e) => setNewAlert({ ...newAlert, location: e.target.value })}
                   placeholder="Incident location"
                 />
               </div>
@@ -163,7 +163,7 @@ export function EmergencyAlerts() {
                 <label className="text-sm text-gray-700 mb-1 block">Description</label>
                 <Textarea
                   value={newAlert.description}
-                  onChange={(e) => setNewAlert({...newAlert, description: e.target.value})}
+                  onChange={(e) => setNewAlert({ ...newAlert, description: e.target.value })}
                   placeholder="Alert description"
                   rows={3}
                 />
@@ -195,7 +195,7 @@ export function EmergencyAlerts() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterSeverity}
               onChange={(e) => setFilterSeverity(e.target.value)}
@@ -206,7 +206,7 @@ export function EmergencyAlerts() {
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -227,11 +227,10 @@ export function EmergencyAlerts() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <AlertTriangle className={`w-5 h-5 ${
-                    alert.severity === 'critical' ? 'text-red-500' :
-                    alert.severity === 'high' ? 'text-orange-500' :
-                    alert.severity === 'medium' ? 'text-yellow-500' : 'text-green-500'
-                  }`} />
+                  <AlertTriangle className={`w-5 h-5 ${alert.severity === 'critical' ? 'text-red-500' :
+                      alert.severity === 'high' ? 'text-orange-500' :
+                        alert.severity === 'medium' ? 'text-yellow-500' : 'text-green-500'
+                    }`} />
                   <h3 className="text-lg text-gray-900">{alert.title}</h3>
                   <div className="flex space-x-2">
                     <Badge className={getSeverityColor(alert.severity)}>
@@ -242,9 +241,9 @@ export function EmergencyAlerts() {
                     </Badge>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-700 mb-3">{alert.description}</p>
-                
+
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-1" />
@@ -256,18 +255,18 @@ export function EmergencyAlerts() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2 ml-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setSelectedAlert(alert)}
                 >
                   <Eye className="w-4 h-4" />
                 </Button>
                 {alert.status === 'active' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleUpdateAlertStatus(alert.id, 'monitoring')}
                   >
@@ -275,16 +274,16 @@ export function EmergencyAlerts() {
                   </Button>
                 )}
                 {alert.status === 'monitoring' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleUpdateAlertStatus(alert.id, 'resolved')}
                   >
                     Resolve
                   </Button>
                 )}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => handleDeleteAlert(alert.id)}
                 >

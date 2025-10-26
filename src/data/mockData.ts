@@ -1,168 +1,14 @@
-import { Alert, Resource, Incident, Team, EvacuationPlan, Shelter, Route, WeatherData, Message, User } from '../types';
+import { Alert, Resource, Incident, Team, EvacuationPlan, WeatherData, Message, User } from '../types';
+import api from '../services/api';
 
-export const mockAlerts: Alert[] = [
-  {
-    id: 'alert-1',
-    title: 'Cyclone Biparjoy Approaching Gujarat Coast',
-    severity: 'critical',
-    type: 'natural',
-    location: 'Gujarat Coast',
-    description: 'Severe cyclonic storm with wind speeds up to 140 km/h expected to make landfall in 12 hours.',
-    status: 'active',
-    createdAt: '2024-12-15T08:00:00Z',
-    updatedAt: '2024-12-15T10:30:00Z'
-  },
-  {
-    id: 'alert-2',
-    title: 'Flash Flood Warning - Mumbai',
-    severity: 'high',
-    type: 'natural',
-    location: 'Mumbai, Maharashtra',
-    description: 'Heavy rainfall expected in next 6 hours. Low-lying areas at risk of flooding.',
-    status: 'active',
-    createdAt: '2024-12-15T09:00:00Z',
-    updatedAt: '2024-12-15T09:00:00Z'
-  },
-  {
-    id: 'alert-3',
-    title: 'Forest Fire Contained - Uttarakhand',
-    severity: 'medium',
-    type: 'natural',
-    location: 'Nainital, Uttarakhand',
-    description: 'Forest fire in Nainital district has been successfully contained. Monitoring continues.',
-    status: 'resolved',
-    createdAt: '2024-12-14T14:00:00Z',
-    updatedAt: '2024-12-15T06:00:00Z'
-  }
-];
-
-export const mockResources: Resource[] = [
-  {
-    id: 'res-1',
-    name: 'NDRF Teams',
-    type: 'personnel',
-    quantity: 45,
-    available: 32,
-    location: 'Multiple Locations',
-    status: 'available'
-  },
-  {
-    id: 'res-2',
-    name: 'Rescue Helicopters',
-    type: 'vehicle',
-    quantity: 8,
-    available: 5,
-    location: 'Delhi, Mumbai, Chennai',
-    status: 'available'
-  },
-  {
-    id: 'res-3',
-    name: 'Emergency Medical Kits',
-    type: 'supplies',
-    quantity: 500,
-    available: 350,
-    location: 'State Warehouses',
-    status: 'available'
-  },
-  {
-    id: 'res-4',
-    name: 'Inflatable Boats',
-    type: 'equipment',
-    quantity: 25,
-    available: 18,
-    location: 'Coastal States',
-    status: 'available'
-  }
-];
-
-export const mockIncidents: Incident[] = [
-  {
-    id: 'inc-1',
-    title: 'Building Collapse in Mumbai',
-    type: 'Structural Failure',
-    severity: 'critical',
-    location: 'Dharavi, Mumbai',
-    coordinates: { lat: 19.0433, lng: 72.8654 },
-    description: 'Four-story residential building collapsed. Rescue operations in progress.',
-    reportedBy: 'Mumbai Fire Brigade',
-    status: 'responding',
-    assignedTeam: 'team-1',
-    createdAt: '2024-12-15T11:30:00Z',
-    updatedAt: '2024-12-15T12:00:00Z'
-  },
-  {
-    id: 'inc-2',
-    title: 'Landslide on NH-44',
-    type: 'Natural Disaster',
-    severity: 'high',
-    location: 'Jammu & Kashmir',
-    coordinates: { lat: 33.7782, lng: 76.5762 },
-    description: 'Highway blocked due to landslide. Traffic diverted to alternate routes.',
-    reportedBy: 'NHAI Control Room',
-    status: 'investigating',
-    createdAt: '2024-12-15T07:45:00Z',
-    updatedAt: '2024-12-15T08:15:00Z'
-  }
-];
-
-export const mockTeams: Team[] = [
-  {
-    id: 'team-1',
-    name: 'NDRF Battalion 1',
-    type: 'rescue',
-    leader: 'Commandant Rajesh Kumar',
-    members: ['Inspector A. Sharma', 'Inspector B. Singh', 'Head Constable C. Verma'],
-    status: 'deployed',
-    location: 'Mumbai',
-    equipment: ['Rescue Equipment', 'Medical Supplies', 'Communication Devices'],
-    contact: '+91-9876543210'
-  },
-  {
-    id: 'team-2',
-    name: 'Fire Response Team Alpha',
-    type: 'fire',
-    leader: 'Chief Fire Officer M. Patel',
-    members: ['Fire Officer D. Kumar', 'Fire Officer E. Yadav', 'Driver F. Shah'],
-    status: 'available',
-    location: 'Delhi',
-    equipment: ['Fire Trucks', 'Ladders', 'Breathing Apparatus'],
-    contact: '+91-9876543211'
-  }
-];
-
-export const mockEvacuationPlans: EvacuationPlan[] = [
-  {
-    id: 'plan-1',
-    name: 'Mumbai Coastal Evacuation Plan',
-    area: 'Mumbai Coastal Areas',
-    capacity: 50000,
-    shelters: [
-      {
-        id: 'shelter-1',
-        name: 'Nehru Stadium',
-        location: 'Mumbai',
-        capacity: 10000,
-        currentOccupancy: 0,
-        facilities: ['Food', 'Water', 'Medical Aid', 'Restrooms'],
-        contact: '+91-9876543212',
-        status: 'operational'
-      }
-    ],
-    routes: [
-      {
-        id: 'route-1',
-        name: 'Coastal Route A',
-        from: 'Juhu Beach',
-        to: 'Nehru Stadium',
-        distance: '8.5 km',
-        estimatedTime: '25 minutes',
-        status: 'clear'
-      }
-    ],
-    status: 'active',
-    lastUpdated: '2024-12-10T00:00:00Z'
-  }
-];
+// These are fallback mock data - actual data will come from API
+export const mockAlerts: Alert[] = [];
+export const mockResources: Resource[] = [];
+export const mockIncidents: Incident[] = [];
+export const mockTeams: Team[] = [];
+export const mockEvacuationPlans: EvacuationPlan[] = [];
+export const mockMessages: Message[] = [];
+export const mockUsers: User[] = [];
 
 export const mockWeatherData: WeatherData = {
   location: 'Delhi',
@@ -178,48 +24,6 @@ export const mockWeatherData: WeatherData = {
     { date: '2024-12-18', high: 28, low: 18, condition: 'Rainy', precipitation: 80 }
   ]
 };
-
-export const mockMessages: Message[] = [
-  {
-    id: 'msg-1',
-    from: 'Control Room Delhi',
-    to: 'All Teams',
-    subject: 'Alert Status Update',
-    content: 'All teams please confirm your current status and location for the evening briefing.',
-    priority: 'high',
-    status: 'sent',
-    timestamp: '2024-12-15T14:30:00Z'
-  },
-  {
-    id: 'msg-2',
-    from: 'NDRF HQ',
-    to: 'Team Leaders',
-    subject: 'Equipment Maintenance Schedule',
-    content: 'Monthly equipment maintenance is scheduled for next week. Please prepare your inventories.',
-    priority: 'normal',
-    status: 'delivered',
-    timestamp: '2024-12-15T10:00:00Z'
-  }
-];
-
-export const mockUsers: User[] = [
-  {
-    id: 'user-1',
-    name: 'Dr. Arvind Kumar',
-    role: 'Disaster Management Coordinator',
-    department: 'NDMA',
-    contact: '+91-9876543213',
-    lastActive: '2024-12-15T12:00:00Z'
-  },
-  {
-    id: 'user-2',
-    name: 'Priya Sharma',
-    role: 'Emergency Response Officer',
-    department: 'State Emergency',
-    contact: '+91-9876543214',
-    lastActive: '2024-12-15T11:45:00Z'
-  }
-];
 
 // Analytics data
 export const mockAnalytics = {
@@ -243,4 +47,86 @@ export const mockAnalytics = {
     { type: 'Accident', count: 25 },
     { type: 'Other', count: 26 }
   ]
+};
+
+// Data fetching functions
+export const fetchAlerts = async (): Promise<Alert[]> => {
+  try {
+    return await api.alerts.getAll();
+  } catch (error) {
+    console.error('Error fetching alerts:', error);
+    return mockAlerts;
+  }
+};
+
+export const fetchResources = async (): Promise<Resource[]> => {
+  try {
+    return await api.resources.getAll();
+  } catch (error) {
+    console.error('Error fetching resources:', error);
+    return mockResources;
+  }
+};
+
+export const fetchIncidents = async (): Promise<Incident[]> => {
+  try {
+    return await api.incidents.getAll();
+  } catch (error) {
+    console.error('Error fetching incidents:', error);
+    return mockIncidents;
+  }
+};
+
+export const fetchTeams = async (): Promise<Team[]> => {
+  try {
+    return await api.teams.getAll();
+  } catch (error) {
+    console.error('Error fetching teams:', error);
+    return mockTeams;
+  }
+};
+
+export const fetchEvacuationPlans = async (): Promise<EvacuationPlan[]> => {
+  try {
+    return await api.evacuationPlans.getAll();
+  } catch (error) {
+    console.error('Error fetching evacuation plans:', error);
+    return mockEvacuationPlans;
+  }
+};
+
+export const fetchMessages = async (): Promise<Message[]> => {
+  try {
+    return await api.messages.getAll();
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    return mockMessages;
+  }
+};
+
+export const fetchUsers = async (): Promise<User[]> => {
+  try {
+    return await api.users.getAll();
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return mockUsers;
+  }
+};
+
+export const fetchWeather = async (location: string): Promise<WeatherData> => {
+  try {
+    return await api.weather.getByLocation(location);
+  } catch (error) {
+    console.error('Error fetching weather:', error);
+    return mockWeatherData;
+  }
+};
+
+export const fetchAnalytics = async () => {
+  try {
+    return await api.analytics.getAll();
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    return mockAnalytics;
+  }
 };

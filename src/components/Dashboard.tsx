@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
-import { 
-  AlertTriangle, 
-  Users, 
-  Package, 
+import {
+  AlertTriangle,
+  Users,
+  Package,
   Activity,
   TrendingUp,
   MapPin,
@@ -14,17 +14,60 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { mockAlerts, mockResources, mockIncidents, mockAnalytics } from '../data/mockData';
+import { fetchAlerts, fetchResources, fetchIncidents, fetchAnalytics } from '../data/mockData';
+import { Alert, Resource, Incident } from '../types';
 
 interface DashboardProps {
   onPageChange: (page: string) => void;
 }
 
 export function Dashboard({ onPageChange }: DashboardProps) {
-  const activeAlerts = mockAlerts.filter(alert => alert.status === 'active');
-  const criticalIncidents = mockIncidents.filter(incident => incident.severity === 'critical');
-  const availableResources = mockResources.reduce((acc, resource) => acc + resource.available, 0);
-  const totalResources = mockResources.reduce((acc, resource) => acc + resource.quantity, 0);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [alertsData, resourcesData, incidentsData, analyticsData] = await Promise.all([
+        fetchAlerts(),
+        fetchResources(),
+        fetchIncidents(),
+        fetchAnalytics()
+      ]);
+
+      setAlerts(alertsData);
+      setResources(resourcesData);
+      setIncidents(incidentsData);
+      setAnalytics(analyticsData);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Activity className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const activeAlerts = alerts.filter(alert => alert.status === 'active');
+  const criticalIncidents = incidents.filter(incident => incident.severity === 'critical');
+  const availableResources = resources.reduce((acc, resource) => acc + resource.available, 0);
+  const totalResources = resources.reduce((acc, resource) => acc + resource.quantity, 0);
 
   return (
     <div className="space-y-6">
@@ -53,9 +96,9 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </div>
           </div>
           <div className="mt-4">
-            <Button 
-              variant="link" 
-              size="sm" 
+            <Button
+              variant="link"
+              size="sm"
               className="p-0 h-auto text-red-600"
               onClick={() => onPageChange('alerts')}
             >
@@ -75,9 +118,9 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </div>
           </div>
           <div className="mt-4">
-            <Button 
-              variant="link" 
-              size="sm" 
+            <Button
+              variant="link"
+              size="sm"
               className="p-0 h-auto text-blue-600"
               onClick={() => onPageChange('teams')}
             >
@@ -97,9 +140,9 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </div>
           </div>
           <div className="mt-4">
-            <Button 
-              variant="link" 
-              size="sm" 
+            <Button
+              variant="link"
+              size="sm"
               className="p-0 h-auto text-green-600"
               onClick={() => onPageChange('resources')}
             >
@@ -112,16 +155,16 @@ export function Dashboard({ onPageChange }: DashboardProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Response Time</p>
-              <p className="text-2xl text-gray-900">{mockAnalytics.averageResponseTime}</p>
+              <p className="text-2xl text-gray-900">{analytics?.averageResponseTime || '18 min'}</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <Activity className="w-6 h-6 text-purple-600" />
             </div>
           </div>
           <div className="mt-4">
-            <Button 
-              variant="link" 
-              size="sm" 
+            <Button
+              variant="link"
+              size="sm"
               className="p-0 h-auto text-purple-600"
               onClick={() => onPageChange('analytics')}
             >
@@ -136,8 +179,8 @@ export function Dashboard({ onPageChange }: DashboardProps) {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg text-gray-900">Recent Alerts</h3>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => onPageChange('alerts')}
             >
@@ -147,22 +190,20 @@ export function Dashboard({ onPageChange }: DashboardProps) {
           <div className="space-y-4">
             {activeAlerts.slice(0, 3).map((alert) => (
               <div key={alert.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className={`w-2 h-2 rounded-full mt-2 ${
-                  alert.severity === 'critical' ? 'bg-red-500' :
-                  alert.severity === 'high' ? 'bg-orange-500' :
-                  alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                }`} />
+                <div className={`w-2 h-2 rounded-full mt-2 ${alert.severity === 'critical' ? 'bg-red-500' :
+                    alert.severity === 'high' ? 'bg-orange-500' :
+                      alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                  }`} />
                 <div className="flex-1">
                   <p className="text-sm text-gray-900">{alert.title}</p>
                   <p className="text-xs text-gray-600 mt-1">{alert.location}</p>
                   <div className="flex items-center mt-2">
-                    <Badge 
+                    <Badge
                       variant="secondary"
-                      className={`text-xs ${
-                        alert.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                        alert.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}
+                      className={`text-xs ${alert.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                          alert.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                            'bg-yellow-100 text-yellow-700'
+                        }`}
                     >
                       {alert.severity.toUpperCase()}
                     </Badge>
@@ -180,8 +221,8 @@ export function Dashboard({ onPageChange }: DashboardProps) {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg text-gray-900">Resource Status</h3>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => onPageChange('resources')}
             >
@@ -189,7 +230,7 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </Button>
           </div>
           <div className="space-y-4">
-            {mockResources.map((resource) => {
+            {resources.slice(0, 4).map((resource) => {
               const utilization = ((resource.quantity - resource.available) / resource.quantity) * 100;
               return (
                 <div key={resource.id} className="space-y-2">
@@ -212,32 +253,32 @@ export function Dashboard({ onPageChange }: DashboardProps) {
         <Card className="p-6">
           <h3 className="text-lg text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => onPageChange('incidents')}
             >
               <AlertTriangle className="w-4 h-4 mr-2" />
               Report New Incident
             </Button>
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => onPageChange('teams')}
             >
               <Users className="w-4 h-4 mr-2" />
               Deploy Team
             </Button>
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => onPageChange('evacuation')}
             >
               <MapPin className="w-4 h-4 mr-2" />
               Activate Evacuation
             </Button>
-            <Button 
-              className="w-full justify-start" 
+            <Button
+              className="w-full justify-start"
               variant="outline"
               onClick={() => onPageChange('communication')}
             >
@@ -265,7 +306,7 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-700">Database Sync</span>
-              <XCircle className="w-5 h-5 text-orange-500" />
+              <CheckCircle className="w-5 h-5 text-green-500" />
             </div>
           </div>
         </Card>
