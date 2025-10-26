@@ -12,9 +12,10 @@ import {
   MapPin,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
-import { fetchAlerts, fetchResources, fetchIncidents, fetchAnalytics } from '../data/mockData';
+import api from '../services/api';
 import { Alert, Resource, Incident } from '../types';
 
 interface DashboardProps {
@@ -27,6 +28,7 @@ export function Dashboard({ onPageChange }: DashboardProps) {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -35,11 +37,13 @@ export function Dashboard({ onPageChange }: DashboardProps) {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const [alertsData, resourcesData, incidentsData, analyticsData] = await Promise.all([
-        fetchAlerts(),
-        fetchResources(),
-        fetchIncidents(),
-        fetchAnalytics()
+        api.alerts.getAll().catch(() => []),
+        api.resources.getAll().catch(() => []),
+        api.incidents.getAll().catch(() => []),
+        api.analytics.getAll().catch(() => null)
       ]);
 
       setAlerts(alertsData);
@@ -48,6 +52,7 @@ export function Dashboard({ onPageChange }: DashboardProps) {
       setAnalytics(analyticsData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      setError('Failed to load dashboard data. Please check if the backend server is running.');
     } finally {
       setLoading(false);
     }
@@ -60,6 +65,22 @@ export function Dashboard({ onPageChange }: DashboardProps) {
           <Activity className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="p-8 max-w-md text-center">
+          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg text-gray-900 mb-2">Connection Error</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadDashboardData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -77,6 +98,10 @@ export function Dashboard({ onPageChange }: DashboardProps) {
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
             System Status: Online
           </Badge>
+          <Button size="sm" onClick={loadDashboardData} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
           <Button size="sm" onClick={() => onPageChange('alerts')}>
             View All Alerts
           </Button>
@@ -110,8 +135,8 @@ export function Dashboard({ onPageChange }: DashboardProps) {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Response Teams</p>
-              <p className="text-2xl text-gray-900">42</p>
+              <p className="text-sm text-gray-600 mb-1">Total Incidents</p>
+              <p className="text-2xl text-gray-900">{incidents.length}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-600" />
@@ -122,9 +147,9 @@ export function Dashboard({ onPageChange }: DashboardProps) {
               variant="link"
               size="sm"
               className="p-0 h-auto text-blue-600"
-              onClick={() => onPageChange('teams')}
+              onClick={() => onPageChange('incidents')}
             >
-              Manage Teams →
+              Manage Incidents →
             </Button>
           </div>
         </Card>
@@ -188,32 +213,39 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </Button>
           </div>
           <div className="space-y-4">
-            {activeAlerts.slice(0, 3).map((alert) => (
-              <div key={alert.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className={`w-2 h-2 rounded-full mt-2 ${alert.severity === 'critical' ? 'bg-red-500' :
-                    alert.severity === 'high' ? 'bg-orange-500' :
-                      alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                  }`} />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">{alert.title}</p>
-                  <p className="text-xs text-gray-600 mt-1">{alert.location}</p>
-                  <div className="flex items-center mt-2">
-                    <Badge
-                      variant="secondary"
-                      className={`text-xs ${alert.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                          alert.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                            'bg-yellow-100 text-yellow-700'
-                        }`}
-                    >
-                      {alert.severity.toUpperCase()}
-                    </Badge>
-                    <span className="text-xs text-gray-500 ml-2">
-                      {new Date(alert.createdAt).toLocaleTimeString()}
-                    </span>
+            {activeAlerts.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                <p className="text-gray-600">No active alerts</p>
+              </div>
+            ) : (
+              activeAlerts.slice(0, 3).map((alert) => (
+                <div key={alert.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className={`w-2 h-2 rounded-full mt-2 ${alert.severity === 'critical' ? 'bg-red-500' :
+                      alert.severity === 'high' ? 'bg-orange-500' :
+                        alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                    }`} />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{alert.title}</p>
+                    <p className="text-xs text-gray-600 mt-1">{alert.location}</p>
+                    <div className="flex items-center mt-2">
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs ${alert.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                            alert.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                              'bg-yellow-100 text-yellow-700'
+                          }`}
+                      >
+                        {alert.severity.toUpperCase()}
+                      </Badge>
+                      <span className="text-xs text-gray-500 ml-2">
+                        {new Date(alert.createdAt).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 
@@ -230,20 +262,27 @@ export function Dashboard({ onPageChange }: DashboardProps) {
             </Button>
           </div>
           <div className="space-y-4">
-            {resources.slice(0, 4).map((resource) => {
-              const utilization = ((resource.quantity - resource.available) / resource.quantity) * 100;
-              return (
-                <div key={resource.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-900">{resource.name}</span>
-                    <span className="text-sm text-gray-600">
-                      {resource.available}/{resource.quantity}
-                    </span>
+            {resources.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No resources available</p>
+              </div>
+            ) : (
+              resources.slice(0, 4).map((resource) => {
+                const utilization = ((resource.quantity - resource.available) / resource.quantity) * 100;
+                return (
+                  <div key={resource.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-900">{resource.name}</span>
+                      <span className="text-sm text-gray-600">
+                        {resource.available}/{resource.quantity}
+                      </span>
+                    </div>
+                    <Progress value={utilization} className="h-2" />
                   </div>
-                  <Progress value={utilization} className="h-2" />
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </Card>
       </div>
@@ -315,27 +354,22 @@ export function Dashboard({ onPageChange }: DashboardProps) {
         <Card className="p-6">
           <h3 className="text-lg text-gray-900 mb-4">Recent Activity</h3>
           <div className="space-y-3">
-            <div className="flex items-start space-x-3">
-              <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-gray-900">Team deployed to Mumbai</p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
+            {incidents.slice(0, 3).map((incident, index) => (
+              <div key={incident.id} className="flex items-start space-x-3">
+                <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-gray-900">{incident.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(incident.createdAt).toLocaleString()}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-gray-900">Weather alert issued</p>
-                <p className="text-xs text-gray-500">4 hours ago</p>
+            ))}
+            {incidents.length === 0 && (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-600">No recent activity</p>
               </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
-              <div>
-                <p className="text-sm text-gray-900">Incident resolved</p>
-                <p className="text-xs text-gray-500">6 hours ago</p>
-              </div>
-            </div>
+            )}
           </div>
         </Card>
       </div>

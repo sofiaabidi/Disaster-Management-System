@@ -5,10 +5,10 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Progress } from './ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { 
-  Package, 
-  Plus, 
-  Search, 
+import {
+  Package,
+  Plus,
+  Search,
   Filter,
   Users,
   Truck,
@@ -40,10 +40,10 @@ export function ResourceManagement() {
 
   const filteredResources = resources.filter(resource => {
     const matchesSearch = resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.location.toLowerCase().includes(searchTerm.toLowerCase());
+      resource.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || resource.type === filterType;
     const matchesStatus = filterStatus === 'all' || resource.status === filterStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -52,7 +52,7 @@ export function ResourceManagement() {
       id: `res-${Date.now()}`,
       ...newResource
     };
-    
+
     setResources([...resources, resource]);
     setNewResource({
       name: '',
@@ -67,8 +67,8 @@ export function ResourceManagement() {
 
   const handleUpdateResource = () => {
     if (!selectedResource) return;
-    
-    setResources(resources.map(resource => 
+
+    setResources(resources.map(resource =>
       resource.id === selectedResource.id ? selectedResource : resource
     ));
     setIsEditOpen(false);
@@ -80,13 +80,13 @@ export function ResourceManagement() {
   };
 
   const handleDeployResource = (resourceId: string, quantity: number) => {
-    setResources(resources.map(resource => 
-      resource.id === resourceId 
-        ? { 
-            ...resource, 
-            available: Math.max(0, resource.available - quantity),
-            status: resource.available - quantity === 0 ? 'deployed' : resource.status
-          }
+    setResources(resources.map(resource =>
+      resource.id === resourceId
+        ? {
+          ...resource,
+          available: Math.max(0, resource.available - quantity),
+          status: resource.available - quantity === 0 ? 'deployed' : resource.status
+        }
         : resource
     ));
   };
@@ -133,17 +133,17 @@ export function ResourceManagement() {
                 <label className="text-sm text-gray-700 mb-1 block">Name</label>
                 <Input
                   value={newResource.name}
-                  onChange={(e) => setNewResource({...newResource, name: e.target.value})}
+                  onChange={(e) => setNewResource({ ...newResource, name: e.target.value })}
                   placeholder="Resource name"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Type</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newResource.type}
-                    onChange={(e) => setNewResource({...newResource, type: e.target.value as Resource['type']})}
+                    onChange={(e) => setNewResource({ ...newResource, type: e.target.value as Resource['type'] })}
                   >
                     <option value="personnel">Personnel</option>
                     <option value="equipment">Equipment</option>
@@ -153,10 +153,10 @@ export function ResourceManagement() {
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Status</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newResource.status}
-                    onChange={(e) => setNewResource({...newResource, status: e.target.value as Resource['status']})}
+                    onChange={(e) => setNewResource({ ...newResource, status: e.target.value as Resource['status'] })}
                   >
                     <option value="available">Available</option>
                     <option value="deployed">Deployed</option>
@@ -170,7 +170,7 @@ export function ResourceManagement() {
                   <Input
                     type="number"
                     value={newResource.quantity}
-                    onChange={(e) => setNewResource({...newResource, quantity: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setNewResource({ ...newResource, quantity: parseInt(e.target.value) || 0 })}
                     placeholder="0"
                   />
                 </div>
@@ -179,7 +179,7 @@ export function ResourceManagement() {
                   <Input
                     type="number"
                     value={newResource.available}
-                    onChange={(e) => setNewResource({...newResource, available: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setNewResource({ ...newResource, available: parseInt(e.target.value) || 0 })}
                     placeholder="0"
                   />
                 </div>
@@ -188,7 +188,7 @@ export function ResourceManagement() {
                 <label className="text-sm text-gray-700 mb-1 block">Location</label>
                 <Input
                   value={newResource.location}
-                  onChange={(e) => setNewResource({...newResource, location: e.target.value})}
+                  onChange={(e) => setNewResource({ ...newResource, location: e.target.value })}
                   placeholder="Resource location"
                 />
               </div>
@@ -271,7 +271,7 @@ export function ResourceManagement() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -282,7 +282,7 @@ export function ResourceManagement() {
               <option value="supplies">Supplies</option>
               <option value="vehicle">Vehicle</option>
             </select>
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -301,7 +301,7 @@ export function ResourceManagement() {
         {filteredResources.map((resource) => {
           const IconComponent = getTypeIcon(resource.type);
           const utilization = ((resource.quantity - resource.available) / resource.quantity) * 100;
-          
+
           return (
             <Card key={resource.id} className="p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
@@ -327,7 +327,7 @@ export function ResourceManagement() {
                   </span>
                 </div>
                 <Progress value={100 - utilization} className="h-2" />
-                
+
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="w-4 h-4 mr-1" />
                   {resource.location}
@@ -343,8 +343,8 @@ export function ResourceManagement() {
 
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                 <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => {
                       setSelectedResource(resource);
@@ -353,8 +353,8 @@ export function ResourceManagement() {
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleDeleteResource(resource.id)}
                   >
@@ -362,7 +362,7 @@ export function ResourceManagement() {
                   </Button>
                 </div>
                 {resource.available > 0 && (
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => handleDeployResource(resource.id, 1)}
                   >
@@ -387,7 +387,7 @@ export function ResourceManagement() {
                 <label className="text-sm text-gray-700 mb-1 block">Name</label>
                 <Input
                   value={selectedResource.name}
-                  onChange={(e) => setSelectedResource({...selectedResource, name: e.target.value})}
+                  onChange={(e) => setSelectedResource({ ...selectedResource, name: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -396,7 +396,7 @@ export function ResourceManagement() {
                   <Input
                     type="number"
                     value={selectedResource.quantity}
-                    onChange={(e) => setSelectedResource({...selectedResource, quantity: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setSelectedResource({ ...selectedResource, quantity: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div>
@@ -404,7 +404,7 @@ export function ResourceManagement() {
                   <Input
                     type="number"
                     value={selectedResource.available}
-                    onChange={(e) => setSelectedResource({...selectedResource, available: parseInt(e.target.value) || 0})}
+                    onChange={(e) => setSelectedResource({ ...selectedResource, available: parseInt(e.target.value) || 0 })}
                   />
                 </div>
               </div>
@@ -412,15 +412,15 @@ export function ResourceManagement() {
                 <label className="text-sm text-gray-700 mb-1 block">Location</label>
                 <Input
                   value={selectedResource.location}
-                  onChange={(e) => setSelectedResource({...selectedResource, location: e.target.value})}
+                  onChange={(e) => setSelectedResource({ ...selectedResource, location: e.target.value })}
                 />
               </div>
               <div>
                 <label className="text-sm text-gray-700 mb-1 block">Status</label>
-                <select 
+                <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   value={selectedResource.status}
-                  onChange={(e) => setSelectedResource({...selectedResource, status: e.target.value as Resource['status']})}
+                  onChange={(e) => setSelectedResource({ ...selectedResource, status: e.target.value as Resource['status'] })}
                 >
                   <option value="available">Available</option>
                   <option value="deployed">Deployed</option>

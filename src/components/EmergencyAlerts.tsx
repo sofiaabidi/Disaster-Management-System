@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
-import { Select } from './ui/select';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import {
@@ -12,22 +11,23 @@ import {
   Search,
   Filter,
   Eye,
-  Edit,
   Trash2,
   MapPin,
   Clock,
-  Users
+  Users,
+  RefreshCw
 } from 'lucide-react';
-import { mockAlerts } from '../data/mockData';
+import api from '../services/api';
 import { Alert } from '../types';
 
 export function EmergencyAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [isNewAlertOpen, setIsNewAlertOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [newAlert, setNewAlert] = useState({
     title: '',
     severity: 'medium' as Alert['severity'],
@@ -35,6 +35,22 @@ export function EmergencyAlerts() {
     location: '',
     description: ''
   });
+
+  useEffect(() => {
+    loadAlerts();
+  }, []);
+
+  const loadAlerts = async () => {
+    try {
+      setLoading(true);
+      const data = await api.alerts.getAll();
+      setAlerts(data);
+    } catch (error) {
+      console.error('Error loading alerts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredAlerts = alerts.filter(alert => {
     const matchesSearch = alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,36 +61,61 @@ export function EmergencyAlerts() {
     return matchesSearch && matchesSeverity && matchesStatus;
   });
 
-  const handleCreateAlert = () => {
-    const alert: Alert = {
-      id: `alert-${Date.now()}`,
-      ...newAlert,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+  const handleCreateAlert = async () => {
+    try {
+      const alertData = {
+        id: `alert-${Date.now()}`,
+        ...newAlert,
+        status: 'active' as Alert['status'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-    setAlerts([alert, ...alerts]);
-    setNewAlert({
-      title: '',
-      severity: 'medium',
-      type: 'natural',
-      location: '',
-      description: ''
-    });
-    setIsNewAlertOpen(false);
+      await api.alerts.create(alertData);
+      await loadAlerts();
+
+      setNewAlert({
+        title: '',
+        severity: 'medium',
+        type: 'natural',
+        location: '',
+        description: ''
+      });
+      setIsNewAlertOpen(false);
+    } catch (error) {
+      console.error('Error creating alert:', error);
+      alert('Failed to create alert. Please try again.');
+    }
   };
 
-  const handleUpdateAlertStatus = (alertId: string, newStatus: Alert['status']) => {
-    setAlerts(alerts.map(alert =>
-      alert.id === alertId
-        ? { ...alert, status: newStatus, updatedAt: new Date().toISOString() }
-        : alert
-    ));
+  const handleUpdateAlertStatus = async (alertId: string, newStatus: Alert['status']) => {
+    try {
+      const alert = alerts.find(a => a.id === alertId);
+      if (!alert) return;
+
+      await api.alerts.update(alertId, {
+        ...alert,
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+
+      await loadAlerts();
+    } catch (error) {
+      console.error('Error updating alert:', error);
+      alert('Failed to update alert. Please try again.');
+    }
   };
 
-  const handleDeleteAlert = (alertId: string) => {
-    setAlerts(alerts.filter(alert => alert.id !== alertId));
+  const handleDeleteAlert = async (alertId: string) => {
+    if (!confirm('Are you sure you want to delete this alert?')) return;
+
+    try {
+      await api.alerts.delete(alertId);
+      await loadAlerts();
+    } catch (error) {
+      console.error('Error deleting alert:', error);
+      alert('Failed to delete alert. Please try again.');
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -96,6 +137,17 @@ export function EmergencyAlerts() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading alerts...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -103,82 +155,88 @@ export function EmergencyAlerts() {
           <h1 className="text-2xl text-gray-900">Emergency Alerts</h1>
           <p className="text-gray-600">Monitor and manage emergency alerts and warnings</p>
         </div>
-        <Dialog open={isNewAlertOpen} onOpenChange={setIsNewAlertOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Alert
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Alert</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-700 mb-1 block">Title</label>
-                <Input
-                  value={newAlert.title}
-                  onChange={(e) => setNewAlert({ ...newAlert, title: e.target.value })}
-                  placeholder="Alert title"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" onClick={loadAlerts}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+          <Dialog open={isNewAlertOpen} onOpenChange={setIsNewAlertOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Alert
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Alert</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Severity</label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    value={newAlert.severity}
-                    onChange={(e) => setNewAlert({ ...newAlert, severity: e.target.value as Alert['severity'] })}
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
+                  <label className="text-sm text-gray-700 mb-1 block">Title</label>
+                  <Input
+                    value={newAlert.title}
+                    onChange={(e) => setNewAlert({ ...newAlert, title: e.target.value })}
+                    placeholder="Alert title"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Severity</label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      value={newAlert.severity}
+                      onChange={(e) => setNewAlert({ ...newAlert, severity: e.target.value as Alert['severity'] })}
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700 mb-1 block">Type</label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      value={newAlert.type}
+                      onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value as Alert['type'] })}
+                    >
+                      <option value="natural">Natural</option>
+                      <option value="man-made">Man-made</option>
+                      <option value="health">Health</option>
+                      <option value="security">Security</option>
+                    </select>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Type</label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    value={newAlert.type}
-                    onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value as Alert['type'] })}
-                  >
-                    <option value="natural">Natural</option>
-                    <option value="man-made">Man-made</option>
-                    <option value="health">Health</option>
-                    <option value="security">Security</option>
-                  </select>
+                  <label className="text-sm text-gray-700 mb-1 block">Location</label>
+                  <Input
+                    value={newAlert.location}
+                    onChange={(e) => setNewAlert({ ...newAlert, location: e.target.value })}
+                    placeholder="Incident location"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700 mb-1 block">Description</label>
+                  <Textarea
+                    value={newAlert.description}
+                    onChange={(e) => setNewAlert({ ...newAlert, description: e.target.value })}
+                    placeholder="Alert description"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsNewAlertOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateAlert} disabled={!newAlert.title || !newAlert.location}>
+                    Create Alert
+                  </Button>
                 </div>
               </div>
-              <div>
-                <label className="text-sm text-gray-700 mb-1 block">Location</label>
-                <Input
-                  value={newAlert.location}
-                  onChange={(e) => setNewAlert({ ...newAlert, location: e.target.value })}
-                  placeholder="Incident location"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-700 mb-1 block">Description</label>
-                <Textarea
-                  value={newAlert.description}
-                  onChange={(e) => setNewAlert({ ...newAlert, description: e.target.value })}
-                  placeholder="Alert description"
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsNewAlertOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateAlert}>
-                  Create Alert
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}

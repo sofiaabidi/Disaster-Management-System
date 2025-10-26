@@ -1,12 +1,18 @@
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # MongoDB Configuration
-MONGO_URI = 'mongodb://localhost:27017/'
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
 client = MongoClient(MONGO_URI)
 db = client['disaster_management']
 
 # Clear existing data
+print("Clearing existing data...")
 db.alerts.delete_many({})
 db.resources.delete_many({})
 db.incidents.delete_many({})
@@ -18,6 +24,10 @@ db.weather.delete_many({})
 
 print("Seeding database with initial data...")
 
+# Helper function to get ISO timestamp
+def get_timestamp(days_ago=0, hours_ago=0):
+    return (datetime.utcnow() - timedelta(days=days_ago, hours=hours_ago)).isoformat() + 'Z'
+
 # Seed Alerts
 alerts = [
     {
@@ -27,8 +37,8 @@ alerts = [
         'location': 'Gujarat Coast',
         'description': 'Severe cyclonic storm with wind speeds up to 140 km/h expected to make landfall in 12 hours.',
         'status': 'active',
-        'createdAt': '2024-12-15T08:00:00Z',
-        'updatedAt': '2024-12-15T10:30:00Z'
+        'createdAt': get_timestamp(days_ago=0, hours_ago=2),
+        'updatedAt': get_timestamp(hours_ago=0)
     },
     {
         'title': 'Flash Flood Warning - Mumbai',
@@ -37,8 +47,8 @@ alerts = [
         'location': 'Mumbai, Maharashtra',
         'description': 'Heavy rainfall expected in next 6 hours. Low-lying areas at risk of flooding.',
         'status': 'active',
-        'createdAt': '2024-12-15T09:00:00Z',
-        'updatedAt': '2024-12-15T09:00:00Z'
+        'createdAt': get_timestamp(hours_ago=1),
+        'updatedAt': get_timestamp(hours_ago=1)
     },
     {
         'title': 'Forest Fire Contained - Uttarakhand',
@@ -47,12 +57,22 @@ alerts = [
         'location': 'Nainital, Uttarakhand',
         'description': 'Forest fire in Nainital district has been successfully contained. Monitoring continues.',
         'status': 'resolved',
-        'createdAt': '2024-12-14T14:00:00Z',
-        'updatedAt': '2024-12-15T06:00:00Z'
+        'createdAt': get_timestamp(days_ago=1),
+        'updatedAt': get_timestamp(hours_ago=6)
+    },
+    {
+        'title': 'Earthquake Alert - Delhi NCR',
+        'severity': 'medium',
+        'type': 'natural',
+        'location': 'Delhi NCR',
+        'description': 'Mild tremors felt in Delhi NCR region. No major damage reported.',
+        'status': 'monitoring',
+        'createdAt': get_timestamp(hours_ago=4),
+        'updatedAt': get_timestamp(hours_ago=3)
     }
 ]
-db.alerts.insert_many(alerts)
-print(f"✓ Seeded {len(alerts)} alerts")
+result = db.alerts.insert_many(alerts)
+print(f"✓ Seeded {len(result.inserted_ids)} alerts")
 
 # Seed Resources
 resources = [
@@ -87,10 +107,42 @@ resources = [
         'available': 18,
         'location': 'Coastal States',
         'status': 'available'
+    },
+    {
+        'name': 'Ambulances',
+        'type': 'vehicle',
+        'quantity': 30,
+        'available': 22,
+        'location': 'Multiple Cities',
+        'status': 'available'
+    },
+    {
+        'name': 'Fire Trucks',
+        'type': 'vehicle',
+        'quantity': 15,
+        'available': 10,
+        'location': 'Fire Stations',
+        'status': 'available'
+    },
+    {
+        'name': 'Tents',
+        'type': 'supplies',
+        'quantity': 200,
+        'available': 180,
+        'location': 'Emergency Warehouses',
+        'status': 'available'
+    },
+    {
+        'name': 'Water Purification Units',
+        'type': 'equipment',
+        'quantity': 50,
+        'available': 45,
+        'location': 'Regional Centers',
+        'status': 'available'
     }
 ]
-db.resources.insert_many(resources)
-print(f"✓ Seeded {len(resources)} resources")
+result = db.resources.insert_many(resources)
+print(f"✓ Seeded {len(result.inserted_ids)} resources")
 
 # Seed Incidents
 incidents = [
@@ -104,8 +156,8 @@ incidents = [
         'reportedBy': 'Mumbai Fire Brigade',
         'status': 'responding',
         'assignedTeam': 'NDRF Battalion 1',
-        'createdAt': '2024-12-15T11:30:00Z',
-        'updatedAt': '2024-12-15T12:00:00Z'
+        'createdAt': get_timestamp(hours_ago=3),
+        'updatedAt': get_timestamp(hours_ago=2)
     },
     {
         'title': 'Landslide on NH-44',
@@ -116,12 +168,37 @@ incidents = [
         'description': 'Highway blocked due to landslide. Traffic diverted to alternate routes.',
         'reportedBy': 'NHAI Control Room',
         'status': 'investigating',
-        'createdAt': '2024-12-15T07:45:00Z',
-        'updatedAt': '2024-12-15T08:15:00Z'
+        'createdAt': get_timestamp(hours_ago=8),
+        'updatedAt': get_timestamp(hours_ago=7)
+    },
+    {
+        'title': 'Chemical Leak - Industrial Area',
+        'type': 'Industrial Accident',
+        'severity': 'high',
+        'location': 'Pune Industrial Area',
+        'coordinates': {'lat': 18.5204, 'lng': 73.8567},
+        'description': 'Chemical leak detected in manufacturing unit. Area being evacuated.',
+        'reportedBy': 'Industrial Safety Officer',
+        'status': 'responding',
+        'assignedTeam': 'Fire Response Team Alpha',
+        'createdAt': get_timestamp(hours_ago=5),
+        'updatedAt': get_timestamp(hours_ago=4)
+    },
+    {
+        'title': 'Traffic Accident - Highway',
+        'type': 'Accident',
+        'severity': 'medium',
+        'location': 'Delhi-Jaipur Highway',
+        'coordinates': {'lat': 28.4595, 'lng': 77.0266},
+        'description': 'Multi-vehicle collision on highway. Emergency services on site.',
+        'reportedBy': 'Highway Patrol',
+        'status': 'resolved',
+        'createdAt': get_timestamp(days_ago=1),
+        'updatedAt': get_timestamp(hours_ago=12)
     }
 ]
-db.incidents.insert_many(incidents)
-print(f"✓ Seeded {len(incidents)} incidents")
+result = db.incidents.insert_many(incidents)
+print(f"✓ Seeded {len(result.inserted_ids)} incidents")
 
 # Seed Teams
 teams = [
@@ -129,7 +206,7 @@ teams = [
         'name': 'NDRF Battalion 1',
         'type': 'rescue',
         'leader': 'Commandant Rajesh Kumar',
-        'members': ['Inspector A. Sharma', 'Inspector B. Singh', 'Head Constable C. Verma'],
+        'members': ['Inspector A. Sharma', 'Inspector B. Singh', 'Head Constable C. Verma', 'Constable D. Patel', 'Constable E. Yadav'],
         'status': 'deployed',
         'location': 'Mumbai',
         'equipment': ['Rescue Equipment', 'Medical Supplies', 'Communication Devices'],
@@ -140,14 +217,34 @@ teams = [
         'type': 'fire',
         'leader': 'Chief Fire Officer M. Patel',
         'members': ['Fire Officer D. Kumar', 'Fire Officer E. Yadav', 'Driver F. Shah'],
-        'status': 'available',
-        'location': 'Delhi',
+        'status': 'deployed',
+        'location': 'Pune',
         'equipment': ['Fire Trucks', 'Ladders', 'Breathing Apparatus'],
         'contact': '+91-9876543211'
+    },
+    {
+        'name': 'Medical Emergency Team Beta',
+        'type': 'medical',
+        'leader': 'Dr. Sarah Johnson',
+        'members': ['Dr. K. Reddy', 'Nurse L. Singh', 'Paramedic M. Khan'],
+        'status': 'available',
+        'location': 'Delhi',
+        'equipment': ['Ambulances', 'Medical Kits', 'Defibrillators'],
+        'contact': '+91-9876543212'
+    },
+    {
+        'name': 'Police Rapid Response Unit',
+        'type': 'police',
+        'leader': 'Inspector General N. Mishra',
+        'members': ['Inspector O. Gupta', 'Sub-Inspector P. Joshi', 'Constable Q. Rao'],
+        'status': 'available',
+        'location': 'Bangalore',
+        'equipment': ['Patrol Vehicles', 'Communication Equipment', 'First Aid Kits'],
+        'contact': '+91-9876543213'
     }
 ]
-db.teams.insert_many(teams)
-print(f"✓ Seeded {len(teams)} teams")
+result = db.teams.insert_many(teams)
+print(f"✓ Seeded {len(result.inserted_ids)} teams")
 
 # Seed Evacuation Plans
 evacuation_plans = [
@@ -165,6 +262,16 @@ evacuation_plans = [
                 'facilities': ['Food', 'Water', 'Medical Aid', 'Restrooms'],
                 'contact': '+91-9876543212',
                 'status': 'operational'
+            },
+            {
+                'id': 'shelter-2',
+                'name': 'Community Hall Complex',
+                'location': 'Bandra, Mumbai',
+                'capacity': 5000,
+                'currentOccupancy': 0,
+                'facilities': ['Food', 'Water', 'Restrooms'],
+                'contact': '+91-9876543213',
+                'status': 'operational'
             }
         ],
         'routes': [
@@ -176,14 +283,53 @@ evacuation_plans = [
                 'distance': '8.5 km',
                 'estimatedTime': '25 minutes',
                 'status': 'clear'
+            },
+            {
+                'id': 'route-2',
+                'name': 'Coastal Route B',
+                'from': 'Marine Drive',
+                'to': 'Community Hall Complex',
+                'distance': '5.2 km',
+                'estimatedTime': '15 minutes',
+                'status': 'clear'
             }
         ],
         'status': 'active',
-        'lastUpdated': '2024-12-10T00:00:00Z'
+        'lastUpdated': get_timestamp()
+    },
+    {
+        'name': 'Delhi Flood Evacuation Plan',
+        'area': 'Yamuna River Basin',
+        'capacity': 30000,
+        'shelters': [
+            {
+                'id': 'shelter-3',
+                'name': 'Delhi University Campus',
+                'location': 'North Delhi',
+                'capacity': 15000,
+                'currentOccupancy': 0,
+                'facilities': ['Food', 'Water', 'Medical Aid', 'Restrooms', 'Power Backup'],
+                'contact': '+91-9876543214',
+                'status': 'operational'
+            }
+        ],
+        'routes': [
+            {
+                'id': 'route-3',
+                'name': 'River Route A',
+                'from': 'Yamuna Bank',
+                'to': 'Delhi University Campus',
+                'distance': '6.8 km',
+                'estimatedTime': '20 minutes',
+                'status': 'clear'
+            }
+        ],
+        'status': 'active',
+        'lastUpdated': get_timestamp()
     }
 ]
-db.evacuation_plans.insert_many(evacuation_plans)
-print(f"✓ Seeded {len(evacuation_plans)} evacuation plans")
+result = db.evacuation_plans.insert_many(evacuation_plans)
+print(f"✓ Seeded {len(result.inserted_ids)} evacuation plans")
 
 # Seed Messages
 messages = [
@@ -194,7 +340,7 @@ messages = [
         'content': 'All teams please confirm your current status and location for the evening briefing.',
         'priority': 'high',
         'status': 'sent',
-        'timestamp': '2024-12-15T14:30:00Z'
+        'timestamp': get_timestamp(hours_ago=2)
     },
     {
         'from': 'NDRF HQ',
@@ -203,11 +349,29 @@ messages = [
         'content': 'Monthly equipment maintenance is scheduled for next week. Please prepare your inventories.',
         'priority': 'normal',
         'status': 'delivered',
-        'timestamp': '2024-12-15T10:00:00Z'
+        'timestamp': get_timestamp(hours_ago=5)
+    },
+    {
+        'from': 'Emergency Command',
+        'to': 'NDRF Battalion 1',
+        'subject': 'Urgent Deployment Request',
+        'content': 'Immediate deployment required for building collapse incident in Mumbai. Proceed with full rescue gear.',
+        'priority': 'urgent',
+        'status': 'read',
+        'timestamp': get_timestamp(hours_ago=3)
+    },
+    {
+        'from': 'Weather Monitoring',
+        'to': 'All Teams',
+        'subject': 'Cyclone Warning',
+        'content': 'Cyclone expected to make landfall in 12 hours. All coastal teams on high alert.',
+        'priority': 'urgent',
+        'status': 'delivered',
+        'timestamp': get_timestamp(hours_ago=1)
     }
 ]
-db.messages.insert_many(messages)
-print(f"✓ Seeded {len(messages)} messages")
+result = db.messages.insert_many(messages)
+print(f"✓ Seeded {len(result.inserted_ids)} messages")
 
 # Seed Users
 users = [
@@ -216,18 +380,32 @@ users = [
         'role': 'Disaster Management Coordinator',
         'department': 'NDMA',
         'contact': '+91-9876543213',
-        'lastActive': '2024-12-15T12:00:00Z'
+        'lastActive': get_timestamp()
     },
     {
         'name': 'Priya Sharma',
         'role': 'Emergency Response Officer',
         'department': 'State Emergency',
         'contact': '+91-9876543214',
-        'lastActive': '2024-12-15T11:45:00Z'
+        'lastActive': get_timestamp(hours_ago=1)
+    },
+    {
+        'name': 'Rajesh Patel',
+        'role': 'Communication Specialist',
+        'department': 'Emergency Services',
+        'contact': '+91-9876543215',
+        'lastActive': get_timestamp(hours_ago=2)
+    },
+    {
+        'name': 'Meera Singh',
+        'role': 'Resource Manager',
+        'department': 'NDMA',
+        'contact': '+91-9876543216',
+        'lastActive': get_timestamp()
     }
 ]
-db.users.insert_many(users)
-print(f"✓ Seeded {len(users)} users")
+result = db.users.insert_many(users)
+print(f"✓ Seeded {len(result.inserted_ids)} users")
 
 # Seed Weather Data
 weather_data = {
@@ -239,12 +417,24 @@ weather_data = {
     'condition': 'Partly Cloudy',
     'alerts': ['Heat Wave Warning'],
     'forecast': [
-        {'date': '2024-12-16', 'high': 32, 'low': 22, 'condition': 'Sunny', 'precipitation': 0},
-        {'date': '2024-12-17', 'high': 30, 'low': 20, 'condition': 'Cloudy', 'precipitation': 10},
-        {'date': '2024-12-18', 'high': 28, 'low': 18, 'condition': 'Rainy', 'precipitation': 80}
+        {'date': (datetime.utcnow() + timedelta(days=1)).strftime('%Y-%m-%d'), 'high': 32, 'low': 22, 'condition': 'Sunny', 'precipitation': 0},
+        {'date': (datetime.utcnow() + timedelta(days=2)).strftime('%Y-%m-%d'), 'high': 30, 'low': 20, 'condition': 'Cloudy', 'precipitation': 10},
+        {'date': (datetime.utcnow() + timedelta(days=3)).strftime('%Y-%m-%d'), 'high': 28, 'low': 18, 'condition': 'Rainy', 'precipitation': 80}
     ]
 }
 db.weather.insert_one(weather_data)
 print("✓ Seeded weather data")
 
 print("\n✅ Database seeding completed successfully!")
+print(f"\nDatabase Statistics:")
+print(f"  - Alerts: {db.alerts.count_documents({})}")
+print(f"  - Resources: {db.resources.count_documents({})}")
+print(f"  - Incidents: {db.incidents.count_documents({})}")
+print(f"  - Teams: {db.teams.count_documents({})}")
+print(f"  - Evacuation Plans: {db.evacuation_plans.count_documents({})}")
+print(f"  - Messages: {db.messages.count_documents({})}")
+print(f"  - Users: {db.users.count_documents({})}")
+print(f"  - Weather: {db.weather.count_documents({})}")
+
+# Close connection
+client.close()
