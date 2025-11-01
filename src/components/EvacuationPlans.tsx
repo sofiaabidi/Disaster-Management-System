@@ -51,18 +51,20 @@ export function EvacuationPlans() {
 
   const handleCreatePlan = async () => {
     try {
-      const planData: EvacuationPlan = {
-        id: `plan-${Date.now()}`,
+      const planData = {
         name: newPlan.name,
         area: newPlan.area,
         capacity: newPlan.capacity,
         shelters: [],
         routes: [],
-        status: 'inactive',
+        status: 'inactive' as EvacuationPlan['status'],
         lastUpdated: new Date().toISOString(),
       };
-      await api.evacuationPlans.create(planData);
-      await loadPlans();
+
+      const createdPlan = await api.evacuationPlans.create(planData);
+
+      setPlans([createdPlan, ...plans]);
+
       setNewPlan({ name: '', area: '', capacity: 0 });
       setIsNewPlanOpen(false);
     } catch (err) {

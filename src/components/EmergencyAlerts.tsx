@@ -64,15 +64,16 @@ export function EmergencyAlerts() {
   const handleCreateAlert = async () => {
     try {
       const alertData = {
-        id: `alert-${Date.now()}`,
         ...newAlert,
         status: 'active' as Alert['status'],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      await api.alerts.create(alertData);
-      await loadAlerts();
+      const createdAlert = await api.alerts.create(alertData);
+
+      // Add to state immediately
+      setAlerts([createdAlert, ...alerts]);
 
       setNewAlert({
         title: '',

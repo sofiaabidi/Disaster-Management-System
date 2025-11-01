@@ -67,7 +67,6 @@ export function IncidentReporting() {
   const handleCreateIncident = async () => {
     try {
       const incidentData = {
-        id: `inc-${Date.now()}`,
         ...newIncident,
         coordinates: { lat: 28.6139, lng: 77.2090 },
         status: 'reported' as Incident['status'],
@@ -75,9 +74,19 @@ export function IncidentReporting() {
         updatedAt: new Date().toISOString()
       };
 
-      await api.incidents.create(incidentData);
-      await loadIncidents();
-      // ... reset form
+      const createdIncident = await api.incidents.create(incidentData);
+
+      setIncidents([createdIncident, ...incidents]);
+
+      setNewIncident({
+        title: '',
+        type: '',
+        severity: 'medium',
+        location: '',
+        description: '',
+        reportedBy: ''
+      });
+      setIsNewIncidentOpen(false);
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to create incident');

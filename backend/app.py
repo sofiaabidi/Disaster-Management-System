@@ -1,3 +1,5 @@
+import requests
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
@@ -284,27 +286,67 @@ def create_message():
         return jsonify({'error': str(e)}), 500
 
 # ============= WEATHER ENDPOINTS =============
+# ============= WEATHER ENDPOINTS =============
 @app.route('/api/weather/<location>', methods=['GET'])
 def get_weather(location):
     try:
-        weather = weather_collection.find_one({'location': location})
-        if weather:
-            return jsonify(serialize_doc(weather)), 200
-        return jsonify({'error': 'Weather data not found'}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/weather', methods=['POST'])
-def update_weather():
-    try:
-        data = request.json
-        location = data.get('location')
-        result = weather_collection.update_one(
-            {'location': location},
-            {'$set': data},
-            upsert=True
-        )
-        return jsonify({'message': 'Weather data updated successfully'}), 200
+        api_key = os.getenv('OPENWEATHER_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'Weather API key not configured'}), 500
+        
+        # Get current weather
+        weather_url = f'https://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric'
+        weather_response = requests.get(weather_url)
+        
+        if weather_response.status_code != 200:
+            return jsonify({'error': 'Location not found'}), 404
+        
+        weather_data = weather_response.json()
+        
+        # Get forecast
+        forecast_url = f'https://api.openweathermap.org/data/2.5/forecast?q={location}&appid={api_key}&units=metric'
+        forecast_response = requests.get(forecast_url)
+        forecast_data = forecast_response.json()
+        
+        # Process forecast data (get daily forecast)
+        daily_forecast = []
+        seen_dates = set()
+        
+        for item in forecast_data.get('list', [])[:24]:  # Next 24 hours / 3 days
+            date = item['dt_txt'].split(' ')[0]
+            if date not in seen_dates and len(daily_forecast) < 3:
+                seen_dates.add(date)
+                daily_forecast.append({
+                    'date': date,
+                    'high': int(item['main']['temp_max']),
+                    'low': int(item['main']['temp_min']),
+                    'condition': item['weather'][0]['main'],
+                    'precipitation': int(item.get('pop', 0) * 100)
+                })
+        
+        # Format response
+        result = {
+            'location': weather_data['name'],
+            'temperature': int(weather_data['main']['temp']),
+            'humidity': weather_data['main']['humidity'],
+            'windSpeed': int(weather_data['wind']['speed'] * 3.6),  # Convert m/s to km/h
+            'visibility': int(weather_data.get('visibility', 10000) / 1000),  # Convert to km
+            'condition': weather_data['weather'][0]['main'],
+            'alerts': [],
+            'forecast': daily_forecast
+        }
+        
+        # Add weather alerts if temperature is extreme
+        if result['temperature'] > 35:
+            result['alerts'].append('Heat Wave Warning')
+        elif result['temperature'] < 5:
+            result['alerts'].append('Cold Wave Warning')
+        
+        if weather_data['weather'][0]['main'] == 'Rain':
+            result['alerts'].append('Heavy Rainfall Expected')
+        
+        return jsonify(result), 200
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

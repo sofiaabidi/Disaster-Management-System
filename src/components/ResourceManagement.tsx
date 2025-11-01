@@ -66,12 +66,9 @@ export function ResourceManagement() {
   };
   const handleCreateResource = async () => {
     try {
-      await api.resources.create({
-        ...newResource,
-        // Don't include id - backend will generate it
-      } as Resource);
+      const createdResource = await api.resources.create(newResource);
 
-      await loadResources();
+      setResources([createdResource, ...resources]);
 
       setNewResource({
         name: '',

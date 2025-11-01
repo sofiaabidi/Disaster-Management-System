@@ -4,12 +4,12 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Progress } from './ui/progress';
-import { 
-  Cloud, 
-  CloudRain, 
-  Sun, 
-  Wind, 
-  Eye, 
+import {
+  Cloud,
+  CloudRain,
+  Sun,
+  Wind,
+  Eye,
   Thermometer,
   Droplets,
   AlertTriangle,
@@ -26,7 +26,7 @@ export function WeatherMonitoring() {
   const [searchLocation, setSearchLocation] = useState('');
 
   const locations = [
-    'Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Bangalore', 'Hyderabad', 
+    'Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Bangalore', 'Hyderabad',
     'Ahmedabad', 'Pune', 'Jaipur', 'Lucknow'
   ];
 

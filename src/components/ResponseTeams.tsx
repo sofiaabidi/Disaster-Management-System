@@ -68,16 +68,16 @@ export function ResponseTeams() {
 
   const handleCreateTeam = async () => {
     try {
-      const teamData: Team = {
-        id: `team-${Date.now()}`, // Remove this - backend generates
+      const teamData = {
         ...newTeam,
         members: [],
-        status: 'available',
+        status: 'available' as Team['status'],
         equipment: []
       };
 
-      await api.teams.create(teamData);
-      await loadTeams();
+      const createdTeam = await api.teams.create(teamData);
+
+      setTeams([createdTeam, ...teams]);
 
       setNewTeam({
         name: '',

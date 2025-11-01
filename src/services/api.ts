@@ -25,7 +25,7 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const alertsAPI = {
     getAll: () => apiCall<Alert[]>('/alerts'),
     getById: (id: string) => apiCall<Alert>(`/alerts/${id}`),
-    create: (data: Alert) => apiCall<Alert>('/alerts', {
+    create: (data: Omit<Alert, 'id'>) => apiCall<Alert>('/alerts', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
@@ -41,7 +41,7 @@ export const alertsAPI = {
 // ============= RESOURCES API =============
 export const resourcesAPI = {
     getAll: () => apiCall<Resource[]>('/resources'),
-    create: (data: Resource) => apiCall<Resource>('/resources', {
+    create: (data: Omit<Resource, 'id'>) => apiCall<Resource>('/resources', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
@@ -57,7 +57,7 @@ export const resourcesAPI = {
 // ============= INCIDENTS API =============
 export const incidentsAPI = {
     getAll: () => apiCall<Incident[]>('/incidents'),
-    create: (data: Incident) => apiCall<Incident>('/incidents', {
+    create: (data: Omit<Incident, 'id'>) => apiCall<Incident>('/incidents', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
@@ -73,7 +73,7 @@ export const incidentsAPI = {
 // ============= TEAMS API =============
 export const teamsAPI = {
     getAll: () => apiCall<Team[]>('/teams'),
-    create: (data: Team) => apiCall<Team>('/teams', {
+    create: (data: Omit<Team, 'id'>) => apiCall<Team>('/teams', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
@@ -89,7 +89,7 @@ export const teamsAPI = {
 // ============= EVACUATION PLANS API =============
 export const evacuationPlansAPI = {
     getAll: () => apiCall<EvacuationPlan[]>('/evacuation-plans'),
-    create: (data: EvacuationPlan) => apiCall<EvacuationPlan>('/evacuation-plans', {
+    create: (data: Omit<EvacuationPlan, 'id'>) => apiCall<EvacuationPlan>('/evacuation-plans', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
@@ -105,7 +105,7 @@ export const evacuationPlansAPI = {
 // ============= MESSAGES API =============
 export const messagesAPI = {
     getAll: () => apiCall<Message[]>('/messages'),
-    create: (data: Message) => apiCall<Message>('/messages', {
+    create: (data: Omit<Message, 'id'>) => apiCall<Message>('/messages', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
