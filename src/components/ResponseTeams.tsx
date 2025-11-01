@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { 
-  Users, 
-  Plus, 
-  Search, 
+import {
+  Users,
+  Plus,
+  Search,
   Filter,
   Phone,
   MapPin,
@@ -24,7 +25,8 @@ import { mockTeams } from '../data/mockData';
 import { Team } from '../types';
 
 export function ResponseTeams() {
-  const [teams, setTeams] = useState<Team[]>(mockTeams);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -42,50 +44,91 @@ export function ResponseTeams() {
 
   const filteredTeams = teams.filter(team => {
     const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         team.leader.toLowerCase().includes(searchTerm.toLowerCase());
+      team.leader.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || team.type === filterType;
     const matchesStatus = filterStatus === 'all' || team.status === filterStatus;
-    
+
     return matchesSearch && matchesType && matchesStatus;
   });
+  useEffect(() => {
+    loadTeams();
+  }, []);
 
-  const handleCreateTeam = () => {
-    const team: Team = {
-      id: `team-${Date.now()}`,
-      ...newTeam,
-      members: [],
-      status: 'available',
-      equipment: []
-    };
-    
-    setTeams([...teams, team]);
-    setNewTeam({
-      name: '',
-      type: 'rescue',
-      leader: '',
-      location: '',
-      contact: ''
-    });
-    setIsNewTeamOpen(false);
+  const loadTeams = async () => {
+    try {
+      setLoading(true);
+      const data = await api.teams.getAll();
+      setTeams(data);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeployTeam = (teamId: string) => {
-    setTeams(teams.map(team => 
-      team.id === teamId 
-        ? { ...team, status: 'deployed', location: deploymentLocation }
-        : team
-    ));
-    setDeploymentLocation('');
-    setIsDeployOpen(false);
-    setSelectedTeam(null);
+  const handleCreateTeam = async () => {
+    try {
+      const teamData: Team = {
+        id: `team-${Date.now()}`, // Remove this - backend generates
+        ...newTeam,
+        members: [],
+        status: 'available',
+        equipment: []
+      };
+
+      await api.teams.create(teamData);
+      await loadTeams();
+
+      setNewTeam({
+        name: '',
+        type: 'rescue',
+        leader: '',
+        location: '',
+        contact: ''
+      });
+      setIsNewTeamOpen(false);
+    } catch (error) {
+      console.error('Error creating team:', error);
+      alert('Failed to create team');
+    }
   };
 
-  const handleRecallTeam = (teamId: string) => {
-    setTeams(teams.map(team => 
-      team.id === teamId 
-        ? { ...team, status: 'available' }
-        : team
-    ));
+  const handleDeployTeam = async (teamId: string) => {
+    try {
+      const team = teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      await api.teams.update(teamId, {
+        ...team,
+        status: 'deployed',
+        location: deploymentLocation
+      });
+
+      await loadTeams();
+      setDeploymentLocation('');
+      setIsDeployOpen(false);
+      setSelectedTeam(null);
+    } catch (error) {
+      console.error('Error deploying team:', error);
+      alert('Failed to deploy team');
+    }
+  };
+
+  const handleRecallTeam = async (teamId: string) => {
+    try {
+      const team = teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      await api.teams.update(teamId, {
+        ...team,
+        status: 'available'
+      });
+
+      await loadTeams();
+    } catch (error) {
+      console.error('Error recalling team:', error);
+      alert('Failed to recall team');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -142,16 +185,16 @@ export function ResponseTeams() {
                 <label className="text-sm text-gray-700 mb-1 block">Team Name</label>
                 <Input
                   value={newTeam.name}
-                  onChange={(e) => setNewTeam({...newTeam, name: e.target.value})}
+                  onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
                   placeholder="Team name"
                 />
               </div>
               <div>
                 <label className="text-sm text-gray-700 mb-1 block">Type</label>
-                <select 
+                <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   value={newTeam.type}
-                  onChange={(e) => setNewTeam({...newTeam, type: e.target.value as Team['type']})}
+                  onChange={(e) => setNewTeam({ ...newTeam, type: e.target.value as Team['type'] })}
                 >
                   <option value="fire">Fire Department</option>
                   <option value="medical">Medical Emergency</option>
@@ -164,7 +207,7 @@ export function ResponseTeams() {
                 <label className="text-sm text-gray-700 mb-1 block">Team Leader</label>
                 <Input
                   value={newTeam.leader}
-                  onChange={(e) => setNewTeam({...newTeam, leader: e.target.value})}
+                  onChange={(e) => setNewTeam({ ...newTeam, leader: e.target.value })}
                   placeholder="Team leader name"
                 />
               </div>
@@ -172,7 +215,7 @@ export function ResponseTeams() {
                 <label className="text-sm text-gray-700 mb-1 block">Location</label>
                 <Input
                   value={newTeam.location}
-                  onChange={(e) => setNewTeam({...newTeam, location: e.target.value})}
+                  onChange={(e) => setNewTeam({ ...newTeam, location: e.target.value })}
                   placeholder="Team location"
                 />
               </div>
@@ -180,7 +223,7 @@ export function ResponseTeams() {
                 <label className="text-sm text-gray-700 mb-1 block">Contact</label>
                 <Input
                   value={newTeam.contact}
-                  onChange={(e) => setNewTeam({...newTeam, contact: e.target.value})}
+                  onChange={(e) => setNewTeam({ ...newTeam, contact: e.target.value })}
                   placeholder="Contact number"
                 />
               </div>
@@ -263,7 +306,7 @@ export function ResponseTeams() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -275,7 +318,7 @@ export function ResponseTeams() {
               <option value="rescue">Search & Rescue</option>
               <option value="evacuation">Evacuation</option>
             </select>
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -293,7 +336,7 @@ export function ResponseTeams() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredTeams.map((team) => {
           const IconComponent = getTypeIcon(team.type);
-          
+
           return (
             <Card key={team.id} className="p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
@@ -331,28 +374,28 @@ export function ResponseTeams() {
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                 <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => setSelectedTeam(team)}
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                   >
                     <UserPlus className="w-4 h-4" />
                   </Button>
                 </div>
                 {team.status === 'available' && (
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => {
                       setSelectedTeam(team);
@@ -363,7 +406,7 @@ export function ResponseTeams() {
                   </Button>
                 )}
                 {team.status === 'deployed' && (
-                  <Button 
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleRecallTeam(team.id)}
@@ -479,7 +522,7 @@ export function ResponseTeams() {
                 <Button variant="outline" onClick={() => setIsDeployOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={() => handleDeployTeam(selectedTeam.id)}
                   disabled={!deploymentLocation.trim()}
                 >

@@ -5,10 +5,10 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { 
-  MessageSquare, 
-  Plus, 
-  Search, 
+import {
+  MessageSquare,
+  Plus,
+  Search,
   Filter,
   Send,
   Phone,
@@ -48,10 +48,10 @@ export function CommunicationCenter() {
 
   const filteredMessages = messages.filter(message => {
     const matchesSearch = message.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         message.content.toLowerCase().includes(searchTerm.toLowerCase());
+      message.content.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPriority = filterPriority === 'all' || message.priority === filterPriority;
     const matchesStatus = filterStatus === 'all' || message.status === filterStatus;
-    
+
     return matchesSearch && matchesPriority && matchesStatus;
   });
 
@@ -63,7 +63,7 @@ export function CommunicationCenter() {
       status: 'sent',
       timestamp: new Date().toISOString()
     };
-    
+
     setMessages([message, ...messages]);
     setNewMessage({
       to: '',
@@ -85,7 +85,7 @@ export function CommunicationCenter() {
       status: 'sent',
       timestamp: new Date().toISOString()
     };
-    
+
     setMessages([message, ...messages]);
     setBroadcastMessage({
       subject: '',
@@ -137,10 +137,10 @@ export function CommunicationCenter() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">To</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newMessage.to}
-                    onChange={(e) => setNewMessage({...newMessage, to: e.target.value})}
+                    onChange={(e) => setNewMessage({ ...newMessage, to: e.target.value })}
                   >
                     <option value="">Select recipient</option>
                     <option value="NDRF Team 1">NDRF Team 1</option>
@@ -152,10 +152,10 @@ export function CommunicationCenter() {
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Priority</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newMessage.priority}
-                    onChange={(e) => setNewMessage({...newMessage, priority: e.target.value as Message['priority']})}
+                    onChange={(e) => setNewMessage({ ...newMessage, priority: e.target.value as Message['priority'] })}
                   >
                     <option value="low">Low</option>
                     <option value="normal">Normal</option>
@@ -167,7 +167,7 @@ export function CommunicationCenter() {
                   <label className="text-sm text-gray-700 mb-1 block">Subject</label>
                   <Input
                     value={newMessage.subject}
-                    onChange={(e) => setNewMessage({...newMessage, subject: e.target.value})}
+                    onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })}
                     placeholder="Message subject"
                   />
                 </div>
@@ -175,7 +175,7 @@ export function CommunicationCenter() {
                   <label className="text-sm text-gray-700 mb-1 block">Message</label>
                   <Textarea
                     value={newMessage.content}
-                    onChange={(e) => setNewMessage({...newMessage, content: e.target.value})}
+                    onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
                     placeholder="Type your message here..."
                     rows={4}
                   />
@@ -207,10 +207,10 @@ export function CommunicationCenter() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Recipients</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={broadcastMessage.recipients}
-                    onChange={(e) => setBroadcastMessage({...broadcastMessage, recipients: e.target.value})}
+                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, recipients: e.target.value })}
                   >
                     <option value="all">All Teams</option>
                     <option value="emergency">Emergency Response Teams</option>
@@ -221,10 +221,10 @@ export function CommunicationCenter() {
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Priority</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={broadcastMessage.priority}
-                    onChange={(e) => setBroadcastMessage({...broadcastMessage, priority: e.target.value as Message['priority']})}
+                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, priority: e.target.value as Message['priority'] })}
                   >
                     <option value="normal">Normal</option>
                     <option value="high">High</option>
@@ -235,7 +235,7 @@ export function CommunicationCenter() {
                   <label className="text-sm text-gray-700 mb-1 block">Subject</label>
                   <Input
                     value={broadcastMessage.subject}
-                    onChange={(e) => setBroadcastMessage({...broadcastMessage, subject: e.target.value})}
+                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, subject: e.target.value })}
                     placeholder="Alert subject"
                   />
                 </div>
@@ -243,7 +243,7 @@ export function CommunicationCenter() {
                   <label className="text-sm text-gray-700 mb-1 block">Message</label>
                   <Textarea
                     value={broadcastMessage.content}
-                    onChange={(e) => setBroadcastMessage({...broadcastMessage, content: e.target.value})}
+                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, content: e.target.value })}
                     placeholder="Emergency broadcast message..."
                     rows={4}
                   />
@@ -367,7 +367,7 @@ export function CommunicationCenter() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
@@ -378,7 +378,7 @@ export function CommunicationCenter() {
               <option value="normal">Normal</option>
               <option value="low">Low</option>
             </select>
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -397,8 +397,8 @@ export function CommunicationCenter() {
         <div className="lg:col-span-2 space-y-4">
           <h3 className="text-lg text-gray-900">Recent Messages</h3>
           {filteredMessages.map((message) => (
-            <Card 
-              key={message.id} 
+            <Card
+              key={message.id}
               className="p-4 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => setSelectedMessage(message)}
             >

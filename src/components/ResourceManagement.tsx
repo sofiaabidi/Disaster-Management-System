@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import api from '../services/api';
+import { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -22,7 +24,8 @@ import { mockResources } from '../data/mockData';
 import { Resource } from '../types';
 
 export function ResourceManagement() {
-  const [resources, setResources] = useState<Resource[]>(mockResources);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -46,37 +49,68 @@ export function ResourceManagement() {
 
     return matchesSearch && matchesType && matchesStatus;
   });
+  useEffect(() => {
+    loadResources();
+  }, []);
 
-  const handleCreateResource = () => {
-    const resource: Resource = {
-      id: `res-${Date.now()}`,
-      ...newResource
-    };
+  const loadResources = async () => {
+    try {
+      setLoading(true);
+      const data = await api.resources.getAll();
+      setResources(data);
+    } catch (error) {
+      console.error('Error loading resources:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleCreateResource = async () => {
+    try {
+      await api.resources.create({
+        ...newResource,
+        // Don't include id - backend will generate it
+      } as Resource);
 
-    setResources([...resources, resource]);
-    setNewResource({
-      name: '',
-      type: 'equipment',
-      quantity: 0,
-      available: 0,
-      location: '',
-      status: 'available'
-    });
-    setIsNewResourceOpen(false);
+      await loadResources();
+
+      setNewResource({
+        name: '',
+        type: 'equipment',
+        quantity: 0,
+        available: 0,
+        location: '',
+        status: 'available'
+      });
+
+      setIsNewResourceOpen(false);
+    } catch (error) {
+      console.error('Error creating resource:', error);
+      alert('Failed to create resource');
+    }
   };
 
-  const handleUpdateResource = () => {
+  const handleUpdateResource = async () => {
     if (!selectedResource) return;
 
-    setResources(resources.map(resource =>
-      resource.id === selectedResource.id ? selectedResource : resource
-    ));
-    setIsEditOpen(false);
-    setSelectedResource(null);
+    try {
+      await api.resources.update(selectedResource.id, selectedResource);
+      await loadResources();
+      setIsEditOpen(false);
+      setSelectedResource(null);
+    } catch (error) {
+      console.error('Error updating resource:', error);
+      alert('Failed to update resource');
+    }
   };
 
-  const handleDeleteResource = (resourceId: string) => {
-    setResources(resources.filter(resource => resource.id !== resourceId));
+  const handleDeleteResource = async (resourceId: string) => {
+    try {
+      await api.resources.delete(resourceId);
+      await loadResources();
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      alert('Failed to delete resource');
+    }
   };
 
   const handleDeployResource = (resourceId: string, quantity: number) => {

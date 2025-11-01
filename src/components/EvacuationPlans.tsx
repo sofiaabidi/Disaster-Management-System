@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -39,11 +40,10 @@ export function EvacuationPlans() {
   const loadPlans = async () => {
     try {
       setLoading(true);
-      const data = await api.evacuationPlans.getAll();
+      const data = await api.evacuationPlans.getAll();  // Already correct
       setPlans(data);
     } catch (err) {
       console.error('Failed to load plans:', err);
-      alert('Error loading evacuation plans.');
     } finally {
       setLoading(false);
     }

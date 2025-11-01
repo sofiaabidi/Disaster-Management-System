@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { 
-  FileText, 
-  Plus, 
-  Search, 
+import {
+  FileText,
+  Plus,
+  Search,
   Filter,
   MapPin,
   Clock,
@@ -23,7 +24,8 @@ import { mockIncidents } from '../data/mockData';
 import { Incident } from '../types';
 
 export function IncidentReporting() {
-  const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -40,41 +42,62 @@ export function IncidentReporting() {
 
   const filteredIncidents = incidents.filter(incident => {
     const matchesSearch = incident.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         incident.location.toLowerCase().includes(searchTerm.toLowerCase());
+      incident.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSeverity = filterSeverity === 'all' || incident.severity === filterSeverity;
     const matchesStatus = filterStatus === 'all' || incident.status === filterStatus;
-    
+
     return matchesSearch && matchesSeverity && matchesStatus;
   });
+  useEffect(() => {
+    loadIncidents();
+  }, []);
 
-  const handleCreateIncident = () => {
-    const incident: Incident = {
-      id: `inc-${Date.now()}`,
-      ...newIncident,
-      coordinates: { lat: 28.6139, lng: 77.2090 }, // Default to Delhi
-      status: 'reported',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    setIncidents([incident, ...incidents]);
-    setNewIncident({
-      title: '',
-      type: '',
-      severity: 'medium',
-      location: '',
-      description: '',
-      reportedBy: ''
-    });
-    setIsNewIncidentOpen(false);
+  const loadIncidents = async () => {
+    try {
+      setLoading(true);
+      const data = await api.incidents.getAll();
+      setIncidents(data);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdateIncidentStatus = (incidentId: string, newStatus: Incident['status']) => {
-    setIncidents(incidents.map(incident => 
-      incident.id === incidentId 
-        ? { ...incident, status: newStatus, updatedAt: new Date().toISOString() }
-        : incident
-    ));
+  const handleCreateIncident = async () => {
+    try {
+      const incidentData = {
+        id: `inc-${Date.now()}`,
+        ...newIncident,
+        coordinates: { lat: 28.6139, lng: 77.2090 },
+        status: 'reported' as Incident['status'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      await api.incidents.create(incidentData);
+      await loadIncidents();
+      // ... reset form
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to create incident');
+    }
+  };
+
+  const handleUpdateIncidentStatus = async (incidentId: string, newStatus: Incident['status']) => {
+    try {
+      const incident = incidents.find(i => i.id === incidentId);
+      if (!incident) return;
+
+      await api.incidents.update(incidentId, {
+        ...incident,
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+      await loadIncidents();
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -120,7 +143,7 @@ export function IncidentReporting() {
                 <label className="text-sm text-gray-700 mb-1 block">Incident Title</label>
                 <Input
                   value={newIncident.title}
-                  onChange={(e) => setNewIncident({...newIncident, title: e.target.value})}
+                  onChange={(e) => setNewIncident({ ...newIncident, title: e.target.value })}
                   placeholder="Brief description of incident"
                 />
               </div>
@@ -129,16 +152,16 @@ export function IncidentReporting() {
                   <label className="text-sm text-gray-700 mb-1 block">Type</label>
                   <Input
                     value={newIncident.type}
-                    onChange={(e) => setNewIncident({...newIncident, type: e.target.value})}
+                    onChange={(e) => setNewIncident({ ...newIncident, type: e.target.value })}
                     placeholder="e.g., Fire, Flood"
                   />
                 </div>
                 <div>
                   <label className="text-sm text-gray-700 mb-1 block">Severity</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     value={newIncident.severity}
-                    onChange={(e) => setNewIncident({...newIncident, severity: e.target.value as Incident['severity']})}
+                    onChange={(e) => setNewIncident({ ...newIncident, severity: e.target.value as Incident['severity'] })}
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -151,7 +174,7 @@ export function IncidentReporting() {
                 <label className="text-sm text-gray-700 mb-1 block">Location</label>
                 <Input
                   value={newIncident.location}
-                  onChange={(e) => setNewIncident({...newIncident, location: e.target.value})}
+                  onChange={(e) => setNewIncident({ ...newIncident, location: e.target.value })}
                   placeholder="Incident location"
                 />
               </div>
@@ -159,7 +182,7 @@ export function IncidentReporting() {
                 <label className="text-sm text-gray-700 mb-1 block">Reported By</label>
                 <Input
                   value={newIncident.reportedBy}
-                  onChange={(e) => setNewIncident({...newIncident, reportedBy: e.target.value})}
+                  onChange={(e) => setNewIncident({ ...newIncident, reportedBy: e.target.value })}
                   placeholder="Reporter name/organization"
                 />
               </div>
@@ -167,7 +190,7 @@ export function IncidentReporting() {
                 <label className="text-sm text-gray-700 mb-1 block">Description</label>
                 <Textarea
                   value={newIncident.description}
-                  onChange={(e) => setNewIncident({...newIncident, description: e.target.value})}
+                  onChange={(e) => setNewIncident({ ...newIncident, description: e.target.value })}
                   placeholder="Detailed description of the incident"
                   rows={3}
                 />
@@ -251,7 +274,7 @@ export function IncidentReporting() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterSeverity}
               onChange={(e) => setFilterSeverity(e.target.value)}
@@ -262,7 +285,7 @@ export function IncidentReporting() {
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <select 
+            <select
               className="px-3 py-2 border border-gray-300 rounded-md"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -294,9 +317,9 @@ export function IncidentReporting() {
                     </Badge>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-700 mb-3">{incident.description}</p>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-1" />
@@ -316,18 +339,18 @@ export function IncidentReporting() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2 ml-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setSelectedIncident(incident)}
                 >
                   <Eye className="w-4 h-4" />
                 </Button>
                 {incident.status === 'reported' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleUpdateIncidentStatus(incident.id, 'investigating')}
                   >
@@ -335,8 +358,8 @@ export function IncidentReporting() {
                   </Button>
                 )}
                 {incident.status === 'investigating' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleUpdateIncidentStatus(incident.id, 'responding')}
                   >
@@ -344,8 +367,8 @@ export function IncidentReporting() {
                   </Button>
                 )}
                 {incident.status === 'responding' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleUpdateIncidentStatus(incident.id, 'resolved')}
                   >
