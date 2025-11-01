@@ -63,6 +63,12 @@ export function EmergencyAlerts() {
 
   const handleCreateAlert = async () => {
     try {
+      // Validate input first
+      if (!newAlert.title || !newAlert.location) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
       const alertData = {
         ...newAlert,
         status: 'active' as Alert['status'],
@@ -70,11 +76,13 @@ export function EmergencyAlerts() {
         updatedAt: new Date().toISOString()
       };
 
+      // AWAIT the API call
       const createdAlert = await api.alerts.create(alertData);
 
-      // Add to state immediately
+      // Only update UI after successful creation
       setAlerts([createdAlert, ...alerts]);
 
+      // Reset form
       setNewAlert({
         title: '',
         severity: 'medium',
@@ -82,10 +90,16 @@ export function EmergencyAlerts() {
         location: '',
         description: ''
       });
+
       setIsNewAlertOpen(false);
+
+      // Optional: Show success message
+      console.log('Alert created successfully');
+
     } catch (error) {
       console.error('Error creating alert:', error);
-      alert('Failed to create alert. Please try again.');
+      // Show user-friendly error
+      alert(error instanceof Error ? error.message : 'Failed to create alert. Please try again.');
     }
   };
 
@@ -157,10 +171,12 @@ export function EmergencyAlerts() {
           <p className="text-gray-600">Monitor and manage emergency alerts and warnings</p>
         </div>
         <div className="flex space-x-2">
+
           <Button variant="outline" size="sm" onClick={loadAlerts}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
+
           <Dialog open={isNewAlertOpen} onOpenChange={setIsNewAlertOpen}>
             <DialogTrigger asChild>
               <Button>

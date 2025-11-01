@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -18,38 +18,63 @@ import {
   MapPin,
   Clock
 } from 'lucide-react';
-import { mockWeatherData } from '../data/mockData';
+import api from '../services/api';
+import { WeatherData } from '../types';
 
 export function WeatherMonitoring() {
-  const [weatherData, setWeatherData] = useState(mockWeatherData);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [selectedLocation, setSelectedLocation] = useState('Delhi');
   const [searchLocation, setSearchLocation] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const locations = [
     'Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Bangalore', 'Hyderabad',
     'Ahmedabad', 'Pune', 'Jaipur', 'Lucknow'
   ];
 
+  useEffect(() => {
+    loadWeatherData(selectedLocation);
+  }, [selectedLocation]);
+
+  const loadWeatherData = async (location: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.weather.getByLocation(location);
+      setWeatherData(data);
+    } catch (err) {
+      console.error('Error fetching weather:', err);
+      setError('Failed to load weather data. Using default data.');
+      // Fallback to default data
+      setWeatherData({
+        location: location,
+        temperature: 28,
+        humidity: 65,
+        windSpeed: 15,
+        visibility: 8,
+        condition: 'Partly Cloudy',
+        alerts: [],
+        forecast: []
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLocationChange = (location: string) => {
     setSelectedLocation(location);
-    // In a real app, this would fetch weather data for the selected location
-    setWeatherData({
-      ...weatherData,
-      location: location,
-      temperature: Math.floor(Math.random() * 20) + 20,
-      humidity: Math.floor(Math.random() * 40) + 40,
-      windSpeed: Math.floor(Math.random() * 25) + 5
-    });
   };
 
   const handleRefresh = () => {
-    // Simulate refreshing weather data
-    setWeatherData({
-      ...weatherData,
-      temperature: Math.floor(Math.random() * 20) + 20,
-      humidity: Math.floor(Math.random() * 40) + 40,
-      windSpeed: Math.floor(Math.random() * 25) + 5
-    });
+    loadWeatherData(selectedLocation);
+  };
+
+  const handleSearch = () => {
+    if (searchLocation.trim()) {
+      setSelectedLocation(searchLocation);
+      setSearchLocation('');
+    }
   };
 
   const getWeatherIcon = (condition: string) => {
@@ -86,6 +111,33 @@ export function WeatherMonitoring() {
     }
   };
 
+  if (loading && !weatherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading weather data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!weatherData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="p-8 max-w-md text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg text-gray-900 mb-2">Failed to Load Weather Data</h3>
+          <p className="text-gray-600 mb-4">{error || 'Unable to fetch weather information'}</p>
+          <Button onClick={handleRefresh}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   const WeatherIcon = getWeatherIcon(weatherData.condition);
 
   return (
@@ -96,8 +148,8 @@ export function WeatherMonitoring() {
           <p className="text-gray-600">Real-time weather data and alerts for disaster preparedness</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="w-4 h-4 mr-2" />
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button>
@@ -106,6 +158,15 @@ export function WeatherMonitoring() {
           </Button>
         </div>
       </div>
+
+      {error && (
+        <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <div className="flex items-center">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2" />
+            <p className="text-sm text-yellow-800">{error}</p>
+          </div>
+        </Card>
+      )}
 
       {/* Location Selector */}
       <Card className="p-4">
@@ -116,6 +177,7 @@ export function WeatherMonitoring() {
               placeholder="Search location..."
               value={searchLocation}
               onChange={(e) => setSearchLocation(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               className="pl-10"
             />
           </div>
@@ -186,7 +248,7 @@ export function WeatherMonitoring() {
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
                 <Thermometer className="w-6 h-6 text-orange-500" />
               </div>
-              <div className="text-2xl text-gray-900">28°C</div>
+              <div className="text-2xl text-gray-900">{weatherData.temperature + 2}°C</div>
               <div className="text-sm text-gray-600">Feels Like</div>
             </div>
           </div>
@@ -199,21 +261,22 @@ export function WeatherMonitoring() {
             Active Alerts
           </h3>
           <div className="space-y-3">
-            {weatherData.alerts.map((alert, index) => {
-              const severity = getAlertSeverity(alert);
-              return (
-                <div key={index} className={`p-3 rounded-lg border ${getSeverityColor(severity)}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <Badge className={getSeverityColor(severity)}>
-                      {severity.toUpperCase()}
-                    </Badge>
-                    <span className="text-xs">2 hours ago</span>
+            {weatherData.alerts.length > 0 ? (
+              weatherData.alerts.map((alert, index) => {
+                const severity = getAlertSeverity(alert);
+                return (
+                  <div key={index} className={`p-3 rounded-lg border ${getSeverityColor(severity)}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge className={getSeverityColor(severity)}>
+                        {severity.toUpperCase()}
+                      </Badge>
+                      <span className="text-xs">Active</span>
+                    </div>
+                    <p className="text-sm">{alert}</p>
                   </div>
-                  <p className="text-sm">{alert}</p>
-                </div>
-              );
-            })}
-            {weatherData.alerts.length === 0 && (
+                );
+              })
+            ) : (
               <div className="text-center py-4">
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full" />
@@ -226,32 +289,34 @@ export function WeatherMonitoring() {
       </div>
 
       {/* Forecast */}
-      <Card className="p-6">
-        <h3 className="text-lg text-gray-900 mb-4">3-Day Forecast</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {weatherData.forecast.map((day, index) => {
-            const DayIcon = getWeatherIcon(day.condition);
-            return (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 mb-2">
-                    {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  </div>
-                  <DayIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-sm text-gray-900 mb-1">{day.condition}</div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-900">{day.high}°</span>
-                    <span className="text-gray-600">{day.low}°</span>
-                  </div>
-                  <div className="mt-2 text-xs text-blue-600">
-                    {day.precipitation}% rain
+      {weatherData.forecast.length > 0 && (
+        <Card className="p-6">
+          <h3 className="text-lg text-gray-900 mb-4">Weather Forecast</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {weatherData.forecast.map((day, index) => {
+              const DayIcon = getWeatherIcon(day.condition);
+              return (
+                <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-sm text-gray-600 mb-2">
+                      {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </div>
+                    <DayIcon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                    <div className="text-sm text-gray-900 mb-1">{day.condition}</div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-900">{day.high}°</span>
+                      <span className="text-gray-600">{day.low}°</span>
+                    </div>
+                    <div className="mt-2 text-xs text-blue-600">
+                      {day.precipitation}% rain
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* Additional Weather Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
