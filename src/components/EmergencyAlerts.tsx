@@ -286,8 +286,8 @@ export function EmergencyAlerts() {
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
                   <AlertTriangle className={`w-5 h-5 ${alert.severity === 'critical' ? 'text-red-500' :
-                      alert.severity === 'high' ? 'text-orange-500' :
-                        alert.severity === 'medium' ? 'text-yellow-500' : 'text-green-500'
+                    alert.severity === 'high' ? 'text-orange-500' :
+                      alert.severity === 'medium' ? 'text-yellow-500' : 'text-green-500'
                     }`} />
                   <h3 className="text-lg text-gray-900">{alert.title}</h3>
                   <div className="flex space-x-2">

@@ -222,8 +222,8 @@ export function Dashboard({ onPageChange }: DashboardProps) {
               activeAlerts.slice(0, 3).map((alert) => (
                 <div key={alert.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                   <div className={`w-2 h-2 rounded-full mt-2 ${alert.severity === 'critical' ? 'bg-red-500' :
-                      alert.severity === 'high' ? 'bg-orange-500' :
-                        alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                    alert.severity === 'high' ? 'bg-orange-500' :
+                      alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
                     }`} />
                   <div className="flex-1">
                     <p className="text-sm text-gray-900">{alert.title}</p>
@@ -232,8 +232,8 @@ export function Dashboard({ onPageChange }: DashboardProps) {
                       <Badge
                         variant="secondary"
                         className={`text-xs ${alert.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                            alert.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                              'bg-yellow-100 text-yellow-700'
+                          alert.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                            'bg-yellow-100 text-yellow-700'
                           }`}
                       >
                         {alert.severity.toUpperCase()}
