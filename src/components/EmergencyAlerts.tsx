@@ -69,14 +69,21 @@ export function EmergencyAlerts() {
       }
 
       const alertData = {
-        ...newAlert,
+        title: newAlert.title,
+        severity: newAlert.severity,
+        type: newAlert.type,
+        location: newAlert.location,
+        description: newAlert.description,
         status: 'active' as Alert['status']
       };
 
-      await api.alerts.create(alertData);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await loadAlerts();
+      // Create the alert and wait for completion
+      const createdAlert = await api.alerts.create(alertData);
 
+      // Update state immediately with the new alert
+      setAlerts(prevAlerts => [createdAlert, ...prevAlerts]);
+
+      // Clear the form
       setNewAlert({
         title: '',
         severity: 'medium',
@@ -88,21 +95,28 @@ export function EmergencyAlerts() {
       setIsNewAlertOpen(false);
     } catch (error) {
       console.error('Error creating alert:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create alert. Please try again.');
+      alert('Failed to create alert. Please try again.');
     }
   };
+
   const handleUpdateAlertStatus = async (alertId: string, newStatus: Alert['status']) => {
     try {
       const alert = alerts.find(a => a.id === alertId);
       if (!alert) return;
 
       await api.alerts.update(alertId, {
-        ...alert,
         status: newStatus,
         updatedAt: new Date().toISOString()
       });
 
-      await loadAlerts();
+      // Update the alert in state immediately
+      setAlerts(prevAlerts =>
+        prevAlerts.map(a =>
+          a.id === alertId
+            ? { ...a, status: newStatus, updatedAt: new Date().toISOString() }
+            : a
+        )
+      );
     } catch (error) {
       console.error('Error updating alert:', error);
       alert('Failed to update alert. Please try again.');
@@ -114,7 +128,9 @@ export function EmergencyAlerts() {
 
     try {
       await api.alerts.delete(alertId);
-      await loadAlerts();
+
+      // Remove from state immediately
+      setAlerts(prevAlerts => prevAlerts.filter(a => a.id !== alertId));
     } catch (error) {
       console.error('Error deleting alert:', error);
       alert('Failed to delete alert. Please try again.');
@@ -159,7 +175,6 @@ export function EmergencyAlerts() {
           <p className="text-gray-600">Monitor and manage emergency alerts and warnings</p>
         </div>
         <div className="flex space-x-2">
-
           <Button variant="outline" size="sm" onClick={loadAlerts}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -189,7 +204,7 @@ export function EmergencyAlerts() {
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Severity</label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full h-9 px-3 py-2 border border-gray-300 rounded-md bg-white"
                       value={newAlert.severity}
                       onChange={(e) => setNewAlert({ ...newAlert, severity: e.target.value as Alert['severity'] })}
                     >
@@ -202,7 +217,7 @@ export function EmergencyAlerts() {
                   <div>
                     <label className="text-sm text-gray-700 mb-1 block">Type</label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full h-9 px-3 py-2 border border-gray-300 rounded-md bg-white"
                       value={newAlert.type}
                       onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value as Alert['type'] })}
                     >
@@ -259,7 +274,7 @@ export function EmergencyAlerts() {
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-500" />
             <select
-              className="px-3 py-2 border border-gray-300 rounded-md"
+              className="h-9 px-3 py-2 border border-gray-300 rounded-md bg-white"
               value={filterSeverity}
               onChange={(e) => setFilterSeverity(e.target.value)}
             >
@@ -270,7 +285,7 @@ export function EmergencyAlerts() {
               <option value="low">Low</option>
             </select>
             <select
-              className="px-3 py-2 border border-gray-300 rounded-md"
+              className="h-9 px-3 py-2 border border-gray-300 rounded-md bg-white"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
             >

@@ -30,7 +30,7 @@ export function Login({ onLogin }: LoginProps) {
             <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md p-10 border border-gray-200">
                 {/* Header */}
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-24 h-24 bg-white rounded-full shadow-md flex items-center justify-center overflow-hidden mb-4 border border-gray-200">
+                    <div className="w-24 h-24 bg-white rounded-full shadow-md flex items-center justify-center overflow-hidden mb-4 border-2 border-[#193cb8]">
                         <img
                             src={govtLogo}
                             alt="Government of India"
@@ -53,7 +53,7 @@ export function Login({ onLogin }: LoginProps) {
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Enter your username"
                             autoComplete="username"
-                            className="focus:ring-2 focus:ring-[#193cb8]"
+                            className="focus:ring-2 focus:ring-[#193cb8] focus:border-[#193cb8]"
                         />
                     </div>
 
@@ -65,19 +65,19 @@ export function Login({ onLogin }: LoginProps) {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Enter your password"
                             autoComplete="current-password"
-                            className="focus:ring-2 focus:ring-[#193cb8]"
+                            className="focus:ring-2 focus:ring-[#193cb8] focus:border-[#193cb8]"
                         />
                     </div>
 
                     {error && (
-                        <div className="text-sm text-red-600 bg-red-50 p-2 rounded-md border border-red-100">
+                        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-100">
                             {error}
                         </div>
                     )}
 
                     <Button
                         type="submit"
-                        className="w-full bg-[#193cb8] hover:bg-[#152f8a] text-white font-semibold py-2 rounded-lg transition-colors shadow-md"
+                        className="w-full bg-[#193cb8] hover:bg-[#152f8a] text-white font-semibold py-2.5 rounded-lg transition-colors shadow-md h-auto"
                     >
                         Sign In
                     </Button>
@@ -86,6 +86,7 @@ export function Login({ onLogin }: LoginProps) {
                 {/* Footer */}
                 <div className="mt-6 text-center text-xs text-gray-500">
                     <p>For authorized personnel only</p>
+                    <p className="mt-2 text-[#193cb8]">Demo: Use any username/password to login</p>
                 </div>
             </div>
         </div>

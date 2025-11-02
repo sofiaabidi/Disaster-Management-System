@@ -68,12 +68,19 @@ export const alertsAPI = {
     },
 
     create: async (data: CreateAlertData) => {
-        return apiCall<Alert>('/alerts', {
-            method: 'POST',
-            body: JSON.stringify(data),
-        });
+        try {
+            const response = await apiCall<Alert>('/alerts', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            });
+            // Add a small delay to ensure backend processes the request
+            await new Promise(resolve => setTimeout(resolve, 100));
+            return response;
+        } catch (error) {
+            console.error('Error creating alert:', error);
+            throw error;
+        }
     },
-
     update: async (id: string, data: Partial<Alert>) => {
         return apiCall<{ message: string }>(`/alerts/${id}`, {
             method: 'PUT',
