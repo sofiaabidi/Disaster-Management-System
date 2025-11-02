@@ -57,13 +57,12 @@ export function EvacuationPlans() {
         capacity: newPlan.capacity,
         shelters: [],
         routes: [],
-        status: 'inactive' as EvacuationPlan['status'],
-        lastUpdated: new Date().toISOString(),
+        status: 'inactive' as EvacuationPlan['status']
       };
 
-      const createdPlan = await api.evacuationPlans.create(planData);
-
-      setPlans([createdPlan, ...plans]);
+      await api.evacuationPlans.create(planData);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await loadPlans();
 
       setNewPlan({ name: '', area: '', capacity: 0 });
       setIsNewPlanOpen(false);

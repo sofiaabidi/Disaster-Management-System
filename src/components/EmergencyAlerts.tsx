@@ -63,7 +63,6 @@ export function EmergencyAlerts() {
 
   const handleCreateAlert = async () => {
     try {
-      // Validate input first
       if (!newAlert.title || !newAlert.location) {
         alert('Please fill in all required fields');
         return;
@@ -71,18 +70,13 @@ export function EmergencyAlerts() {
 
       const alertData = {
         ...newAlert,
-        status: 'active' as Alert['status'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        status: 'active' as Alert['status']
       };
 
-      // AWAIT the API call
-      const createdAlert = await api.alerts.create(alertData);
+      await api.alerts.create(alertData);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await loadAlerts();
 
-      // Only update UI after successful creation
-      setAlerts([createdAlert, ...alerts]);
-
-      // Reset form
       setNewAlert({
         title: '',
         severity: 'medium',
@@ -92,17 +86,11 @@ export function EmergencyAlerts() {
       });
 
       setIsNewAlertOpen(false);
-
-      // Optional: Show success message
-      console.log('Alert created successfully');
-
     } catch (error) {
       console.error('Error creating alert:', error);
-      // Show user-friendly error
       alert(error instanceof Error ? error.message : 'Failed to create alert. Please try again.');
     }
   };
-
   const handleUpdateAlertStatus = async (alertId: string, newStatus: Alert['status']) => {
     try {
       const alert = alerts.find(a => a.id === alertId);

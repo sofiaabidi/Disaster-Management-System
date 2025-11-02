@@ -398,5 +398,52 @@ def get_users():
 def health_check():
     return jsonify({'status': 'ok', 'message': 'Server is running'}), 200
 
+# ============= AUTH ENDPOINTS =============
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    try:
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({'error': 'Username and password required'}), 400
+        
+        # Check if user exists
+        user = users_collection.find_one({'username': username})
+        
+        if not user:
+            # Create new user (in production, you'd hash passwords!)
+            user_data = {
+                'username': username,
+                'password': password,  # In production, HASH THIS!
+                'name': username.title(),
+                'role': 'Operator',
+                'department': 'Emergency Services',
+                'contact': '+91-0000000000',
+                'lastActive': datetime.utcnow().isoformat() + 'Z'
+            }
+            result = users_collection.insert_one(user_data)
+            user_data['id'] = str(result.inserted_id)
+            del user_data['_id']
+            return jsonify({'success': True, 'user': user_data}), 201
+        
+        # Verify password
+        if user.get('password') != password:
+            return jsonify({'error': 'Invalid credentials'}), 401
+        
+        # Update last active
+        users_collection.update_one(
+            {'_id': user['_id']},
+            {'$set': {'lastActive': datetime.utcnow().isoformat() + 'Z'}}
+        )
+        
+        user_data = serialize_doc(user)
+        del user_data['password']  # Don't send password back
+        
+        return jsonify({'success': True, 'user': user_data}), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

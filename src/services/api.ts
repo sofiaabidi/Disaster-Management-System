@@ -39,6 +39,24 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
     }
 }
 
+// Type for creating alerts (without id, createdAt, updatedAt)
+type CreateAlertData = Omit<Alert, 'id' | 'createdAt' | 'updatedAt'>;
+
+// Type for creating incidents (without id, createdAt, updatedAt)
+type CreateIncidentData = Omit<Incident, 'id' | 'createdAt' | 'updatedAt'>;
+
+// Type for creating evacuation plans (without id, lastUpdated)
+type CreateEvacuationPlanData = Omit<EvacuationPlan, 'id' | 'lastUpdated'>;
+
+// Type for creating resources (without id)
+type CreateResourceData = Omit<Resource, 'id'>;
+
+// Type for creating teams (without id)
+type CreateTeamData = Omit<Team, 'id'>;
+
+// Type for creating messages (without id)
+type CreateMessageData = Omit<Message, 'id'>;
+
 // ============= ALERTS API =============
 export const alertsAPI = {
     getAll: async () => {
@@ -49,7 +67,7 @@ export const alertsAPI = {
         return apiCall<Alert>(`/alerts/${id}`);
     },
 
-    create: async (data: Omit<Alert, 'id'>) => {
+    create: async (data: CreateAlertData) => {
         return apiCall<Alert>('/alerts', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -76,7 +94,7 @@ export const resourcesAPI = {
         return apiCall<Resource[]>('/resources');
     },
 
-    create: async (data: Omit<Resource, 'id'>) => {
+    create: async (data: CreateResourceData) => {
         return apiCall<Resource>('/resources', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -103,7 +121,7 @@ export const incidentsAPI = {
         return apiCall<Incident[]>('/incidents');
     },
 
-    create: async (data: Omit<Incident, 'id'>) => {
+    create: async (data: CreateIncidentData) => {
         return apiCall<Incident>('/incidents', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -130,7 +148,7 @@ export const teamsAPI = {
         return apiCall<Team[]>('/teams');
     },
 
-    create: async (data: Omit<Team, 'id'>) => {
+    create: async (data: CreateTeamData) => {
         return apiCall<Team>('/teams', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -157,7 +175,7 @@ export const evacuationPlansAPI = {
         return apiCall<EvacuationPlan[]>('/evacuation-plans');
     },
 
-    create: async (data: Omit<EvacuationPlan, 'id'>) => {
+    create: async (data: CreateEvacuationPlanData) => {
         return apiCall<EvacuationPlan>('/evacuation-plans', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -184,7 +202,7 @@ export const messagesAPI = {
         return apiCall<Message[]>('/messages');
     },
 
-    create: async (data: Omit<Message, 'id'>) => {
+    create: async (data: CreateMessageData) => {
         return apiCall<Message>('/messages', {
             method: 'POST',
             body: JSON.stringify(data),

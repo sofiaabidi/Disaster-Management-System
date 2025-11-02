@@ -374,8 +374,11 @@ result = db.messages.insert_many(messages)
 print(f"✓ Seeded {len(result.inserted_ids)} messages")
 
 # Seed Users
+# Seed Users
 users = [
     {
+        'username': 'admin',
+        'password': 'admin123',  # In production, HASH THIS!
         'name': 'Dr. Arvind Kumar',
         'role': 'Disaster Management Coordinator',
         'department': 'NDMA',
@@ -383,6 +386,8 @@ users = [
         'lastActive': get_timestamp()
     },
     {
+        'username': 'operator1',
+        'password': 'pass123',
         'name': 'Priya Sharma',
         'role': 'Emergency Response Officer',
         'department': 'State Emergency',
@@ -390,6 +395,8 @@ users = [
         'lastActive': get_timestamp(hours_ago=1)
     },
     {
+        'username': 'operator2',
+        'password': 'pass123',
         'name': 'Rajesh Patel',
         'role': 'Communication Specialist',
         'department': 'Emergency Services',
@@ -397,6 +404,8 @@ users = [
         'lastActive': get_timestamp(hours_ago=2)
     },
     {
+        'username': 'operator3',
+        'password': 'pass123',
         'name': 'Meera Singh',
         'role': 'Resource Manager',
         'department': 'NDMA',

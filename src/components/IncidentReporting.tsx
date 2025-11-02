@@ -69,14 +69,12 @@ export function IncidentReporting() {
       const incidentData = {
         ...newIncident,
         coordinates: { lat: 28.6139, lng: 77.2090 },
-        status: 'reported' as Incident['status'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        status: 'reported' as Incident['status']
       };
 
-      const createdIncident = await api.incidents.create(incidentData);
-
-      setIncidents([createdIncident, ...incidents]);
+      await api.incidents.create(incidentData);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await loadIncidents();
 
       setNewIncident({
         title: '',
@@ -88,8 +86,8 @@ export function IncidentReporting() {
       });
       setIsNewIncidentOpen(false);
     } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to create incident');
+      console.error('Error creating incident:', error);
+      alert('Failed to create incident. Please try again.');
     }
   };
 

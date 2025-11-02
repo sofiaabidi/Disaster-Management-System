@@ -1,19 +1,16 @@
 import React from 'react';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { 
-  Home, 
-  AlertTriangle, 
-  Package, 
-  FileText, 
-  Users, 
-  MapPin, 
-  Cloud, 
-  MessageSquare, 
+import {
+  Home,
+  AlertTriangle,
+  Package,
+  FileText,
+  Users,
+  MapPin,
+  Cloud,
+  MessageSquare,
   BarChart3,
-  Settings,
-  LogOut,
-  Bell
+  LogOut
 } from 'lucide-react';
 import govtLogo from 'figma:asset/41e57d94a0a11f07ecf591200122d730a7f7b6fe.png';
 
@@ -21,6 +18,8 @@ interface LayoutProps {
   children: React.ReactNode;
   currentPage: string;
   onPageChange: (page: string) => void;
+  currentUser: any;
+  onLogout: () => void;
 }
 
 const menuItems = [
@@ -35,7 +34,7 @@ const menuItems = [
   { id: 'analytics', label: 'Reports & Analytics', icon: BarChart3 }
 ];
 
-export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
+export function Layout({ children, currentPage, onPageChange, currentUser, onLogout }: LayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -51,14 +50,11 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="w-5 h-5" />
-              <Badge className="absolute -top-1 -right-1 px-1 py-0 text-xs bg-red-500">3</Badge>
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="sm">
+            <div className="text-right mr-4">
+              <p className="text-sm text-gray-900">{currentUser?.name}</p>
+              <p className="text-xs text-gray-600">{currentUser?.role}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onLogout} title="Logout">
               <LogOut className="w-5 h-5" />
             </Button>
           </div>
@@ -76,11 +72,10 @@ export function Layout({ children, currentPage, onPageChange }: LayoutProps) {
                   <li key={item.id}>
                     <Button
                       variant={currentPage === item.id ? "secondary" : "ghost"}
-                      className={`w-full justify-start transition-all ${
-                        currentPage === item.id 
-                          ? "bg-white text-blue-600 hover:bg-gray-100" 
+                      className={`w-full justify-start transition-all ${currentPage === item.id
+                          ? "bg-white text-blue-600 hover:bg-gray-100"
                           : "text-white hover:bg-blue-900 hover:text-white"
-                      }`}
+                        }`}
                       onClick={() => onPageChange(item.id)}
                     >
                       <IconComponent className="w-5 h-5 mr-3" />
