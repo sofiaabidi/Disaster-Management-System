@@ -14,14 +14,10 @@ import {
   MapPin,
   Shield,
   Flame,
-  Truck,
   Heart,
-  Edit,
   Eye,
-  UserPlus,
   Navigation
 } from 'lucide-react';
-import { mockTeams } from '../data/mockData';
 import { Team } from '../types';
 
 export function ResponseTeams() {
@@ -43,13 +39,14 @@ export function ResponseTeams() {
   const [deploymentLocation, setDeploymentLocation] = useState('');
 
   const filteredTeams = teams.filter(team => {
-    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       team.leader.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || team.type === filterType;
     const matchesStatus = filterStatus === 'all' || team.status === filterStatus;
-
     return matchesSearch && matchesType && matchesStatus;
   });
+
   useEffect(() => {
     loadTeams();
   }, []);
@@ -74,11 +71,8 @@ export function ResponseTeams() {
         status: 'available' as Team['status'],
         equipment: []
       };
-
       const createdTeam = await api.teams.create(teamData);
-
       setTeams([createdTeam, ...teams]);
-
       setNewTeam({
         name: '',
         type: 'rescue',
@@ -372,6 +366,7 @@ export function ResponseTeams() {
                 </div>
               </div>
 
+              {/* ↓↓↓ Only "View" button retained */}
               <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                 <div className="flex space-x-2">
                   <Button
@@ -380,18 +375,6 @@ export function ResponseTeams() {
                     onClick={() => setSelectedTeam(team)}
                   >
                     <Eye className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                  >
-                    <UserPlus className="w-4 h-4" />
                   </Button>
                 </div>
                 {team.status === 'available' && (
@@ -486,10 +469,6 @@ export function ResponseTeams() {
                 <Button variant="outline" onClick={() => setSelectedTeam(null)}>
                   Close
                 </Button>
-                <Button>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Add Members
-                </Button>
               </div>
             </div>
           </DialogContent>
@@ -501,45 +480,26 @@ export function ResponseTeams() {
         <Dialog open={isDeployOpen} onOpenChange={setIsDeployOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Deploy Team: {selectedTeam.name}</DialogTitle>
+              <DialogTitle>Deploy Team</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-700 mb-1 block">Deployment Location</label>
-                <Input
-                  value={deploymentLocation}
-                  onChange={(e) => setDeploymentLocation(e.target.value)}
-                  placeholder="Enter deployment location"
-                />
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Team Details</h4>
-                <p className="text-sm text-gray-600">Leader: {selectedTeam.leader}</p>
-                <p className="text-sm text-gray-600">Type: {selectedTeam.type}</p>
-                <p className="text-sm text-gray-600">Current Location: {selectedTeam.location}</p>
-              </div>
+              <p>Deploy <strong>{selectedTeam.name}</strong> to a location:</p>
+              <Input
+                placeholder="Deployment location"
+                value={deploymentLocation}
+                onChange={(e) => setDeploymentLocation(e.target.value)}
+              />
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setIsDeployOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  onClick={() => handleDeployTeam(selectedTeam.id)}
-                  disabled={!deploymentLocation.trim()}
-                >
-                  Deploy Team
+                <Button onClick={() => handleDeployTeam(selectedTeam.id)}>
+                  Confirm Deployment
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
-      )}
-
-      {filteredTeams.length === 0 && (
-        <Card className="p-12 text-center">
-          <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg text-gray-900 mb-2">No teams found</h3>
-          <p className="text-gray-600">Try adjusting your search criteria or add a new team.</p>
-        </Card>
       )}
     </div>
   );

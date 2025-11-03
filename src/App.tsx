@@ -9,7 +9,6 @@ import { ResponseTeams } from "./components/ResponseTeams";
 import { EvacuationPlans } from "./components/EvacuationPlans";
 import { WeatherMonitoring } from "./components/WeatherMonitoring";
 import { CommunicationCenter } from "./components/CommunicationCenter";
-import { Analytics } from "./components/Analytics";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -79,8 +78,6 @@ export default function App() {
         return <WeatherMonitoring />;
       case "communication":
         return <CommunicationCenter />;
-      case "analytics":
-        return <Analytics />;
       default:
         return <Dashboard onPageChange={setCurrentPage} />;
     }

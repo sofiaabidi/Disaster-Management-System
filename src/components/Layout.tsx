@@ -31,7 +31,6 @@ const menuItems = [
   { id: 'evacuation', label: 'Evacuation Plans', icon: MapPin },
   { id: 'weather', label: 'Weather Monitoring', icon: Cloud },
   { id: 'communication', label: 'Communication Center', icon: MessageSquare },
-  { id: 'analytics', label: 'Reports & Analytics', icon: BarChart3 }
 ];
 
 export function Layout({ children, currentPage, onPageChange, currentUser, onLogout }: LayoutProps) {
@@ -73,8 +72,8 @@ export function Layout({ children, currentPage, onPageChange, currentUser, onLog
                     <Button
                       variant={currentPage === item.id ? "secondary" : "ghost"}
                       className={`w-full justify-start transition-all ${currentPage === item.id
-                          ? "bg-white text-blue-600 hover:bg-gray-100"
-                          : "text-white hover:bg-blue-900 hover:text-white"
+                        ? "bg-white text-blue-600 hover:bg-gray-100"
+                        : "text-white hover:bg-blue-900 hover:text-white"
                         }`}
                       onClick={() => onPageChange(item.id)}
                     >

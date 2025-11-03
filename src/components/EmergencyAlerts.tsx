@@ -118,8 +118,6 @@ export function EmergencyAlerts() {
         )
       );
     } catch (error) {
-      console.error('Error updating alert:', error);
-      alert('Failed to update alert. Please try again.');
     }
   };
 

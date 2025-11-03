@@ -152,10 +152,6 @@ export function WeatherMonitoring() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button>
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Issue Alert
-          </Button>
         </div>
       </div>
 
@@ -380,52 +376,6 @@ export function WeatherMonitoring() {
           </div>
         </Card>
       </div>
-
-      {/* Weather Stations */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg text-gray-900">Nearby Weather Stations</h3>
-          <Button variant="outline" size="sm">
-            <MapPin className="w-4 h-4 mr-2" />
-            View on Map
-          </Button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2">Station</th>
-                <th className="text-left py-2">Location</th>
-                <th className="text-left py-2">Temp</th>
-                <th className="text-left py-2">Humidity</th>
-                <th className="text-left py-2">Wind</th>
-                <th className="text-left py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name: 'Central Delhi', location: 'Connaught Place', temp: '28°C', humidity: '65%', wind: '15 km/h', status: 'online' },
-                { name: 'South Delhi', location: 'Hauz Khas', temp: '27°C', humidity: '68%', wind: '12 km/h', status: 'online' },
-                { name: 'North Delhi', location: 'Chandni Chowk', temp: '29°C', humidity: '62%', wind: '18 km/h', status: 'offline' },
-                { name: 'East Delhi', location: 'Mayur Vihar', temp: '28°C', humidity: '66%', wind: '16 km/h', status: 'online' }
-              ].map((station, index) => (
-                <tr key={index} className="border-b border-gray-100">
-                  <td className="py-2 text-gray-900">{station.name}</td>
-                  <td className="py-2 text-gray-600">{station.location}</td>
-                  <td className="py-2 text-gray-900">{station.temp}</td>
-                  <td className="py-2 text-gray-900">{station.humidity}</td>
-                  <td className="py-2 text-gray-900">{station.wind}</td>
-                  <td className="py-2">
-                    <Badge className={station.status === 'online' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
-                      {station.status.toUpperCase()}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
     </div>
   );
 }

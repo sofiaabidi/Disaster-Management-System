@@ -378,7 +378,7 @@ print(f"✓ Seeded {len(result.inserted_ids)} messages")
 users = [
     {
         'username': 'admin',
-        'password': 'admin123',  # In production, HASH THIS!
+        'password': 'Admin123##',  # In production, HASH THIS!
         'name': 'Dr. Arvind Kumar',
         'role': 'Disaster Management Coordinator',
         'department': 'NDMA',
@@ -387,7 +387,7 @@ users = [
     },
     {
         'username': 'operator1',
-        'password': 'pass123',
+        'password': 'Password123@',
         'name': 'Priya Sharma',
         'role': 'Emergency Response Officer',
         'department': 'State Emergency',
@@ -396,7 +396,7 @@ users = [
     },
     {
         'username': 'operator2',
-        'password': 'pass123',
+        'password': 'TommyTheDOg@781',
         'name': 'Rajesh Patel',
         'role': 'Communication Specialist',
         'department': 'Emergency Services',
@@ -405,7 +405,7 @@ users = [
     },
     {
         'username': 'operator3',
-        'password': 'pass123',
+        'password': 'OpsDisasMan67$',
         'name': 'Meera Singh',
         'role': 'Resource Manager',
         'department': 'NDMA',

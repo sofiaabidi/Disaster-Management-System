@@ -399,6 +399,35 @@ def health_check():
     return jsonify({'status': 'ok', 'message': 'Server is running'}), 200
 
 # ============= AUTH ENDPOINTS =============
+def validate_password_rules(password):
+    """
+    Checks if the password follows standard security rules:
+    - At least 8 characters
+    - At least one uppercase
+    - At least one lowercase
+    - At least one digit
+    - At least one special character
+    """
+    rules = []
+    if len(password) < 8:
+        rules.append("Password must be at least 8 characters long.")
+    if not re.search(r"[A-Z]", password):
+        rules.append("Password must contain at least one uppercase letter.")
+    if not re.search(r"[a-z]", password):
+        rules.append("Password must contain at least one lowercase letter.")
+    if not re.search(r"\d", password):
+        rules.append("Password must contain at least one number.")
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        rules.append("Password must contain at least one special character.")
+    
+    if rules:
+        print("\n⚠️ PASSWORD VALIDATION FAILED:")
+        for rule in rules:
+            print(f" - {rule}")
+        return False
+    return True
+
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
@@ -413,10 +442,13 @@ def login():
         user = users_collection.find_one({'username': username})
         
         if not user:
-            # Create new user (in production, you'd hash passwords!)
+            #  Password validation before user creation
+            if not validate_password_rules(password):
+                return jsonify({'error': 'Password does not meet security requirements. Check console for details.'}), 400
+
             user_data = {
                 'username': username,
-                'password': password,  # In production, HASH THIS!
+                'password': password,  # No hashing, as per your request
                 'name': username.title(),
                 'role': 'Operator',
                 'department': 'Emergency Services',
@@ -445,5 +477,6 @@ def login():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

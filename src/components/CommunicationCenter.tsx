@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -22,11 +22,12 @@ import {
   Mail,
   Zap
 } from 'lucide-react';
-import { mockMessages, mockUsers } from '../data/mockData';
+import { mockUsers } from '../data/mockData';
+import api from '../services/api';
 import { Message } from '../types';
 
 export function CommunicationCenter() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -55,23 +56,44 @@ export function CommunicationCenter() {
     return matchesSearch && matchesPriority && matchesStatus;
   });
 
-  const handleSendMessage = () => {
-    const message: Message = {
-      id: `msg-${Date.now()}`,
-      from: 'Current User',
-      ...newMessage,
-      status: 'sent',
-      timestamp: new Date().toISOString()
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const data = await api.messages.getAll();
+        setMessages(data);
+      } catch (error) {
+        console.error('Failed to load messages', error);
+      }
     };
+    loadMessages();
+  }, []);
 
-    setMessages([message, ...messages]);
-    setNewMessage({
-      to: '',
-      subject: '',
-      content: '',
-      priority: 'normal'
-    });
-    setIsNewMessageOpen(false);
+  const handleSendMessage = async () => {
+    try {
+      const payload = {
+        from: 'operations@ndma.gov.in',
+        to: newMessage.to,
+        subject: newMessage.subject,
+        content: newMessage.content,
+        priority: newMessage.priority,
+        channel: 'Email',
+        timestamp: new Date().toISOString(),
+        status: 'sent' as Message['status']
+      };
+
+      const created = await api.messages.create(payload as any);
+      setMessages(prev => [created, ...prev]);
+      setNewMessage({
+        to: '',
+        subject: '',
+        content: '',
+        priority: 'normal'
+      });
+      setIsNewMessageOpen(false);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
+    }
   };
 
   const handleBroadcast = () => {
@@ -193,114 +215,53 @@ export function CommunicationCenter() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isBroadcastOpen} onOpenChange={setIsBroadcastOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Megaphone className="w-4 h-4 mr-2" />
-                Emergency Broadcast
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Emergency Broadcast</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Recipients</label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    value={broadcastMessage.recipients}
-                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, recipients: e.target.value })}
-                  >
-                    <option value="all">All Teams</option>
-                    <option value="emergency">Emergency Response Teams</option>
-                    <option value="medical">Medical Teams</option>
-                    <option value="fire">Fire Departments</option>
-                    <option value="police">Police Units</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Priority</label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    value={broadcastMessage.priority}
-                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, priority: e.target.value as Message['priority'] })}
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Subject</label>
-                  <Input
-                    value={broadcastMessage.subject}
-                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, subject: e.target.value })}
-                    placeholder="Alert subject"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700 mb-1 block">Message</label>
-                  <Textarea
-                    value={broadcastMessage.content}
-                    onChange={(e) => setBroadcastMessage({ ...broadcastMessage, content: e.target.value })}
-                    placeholder="Emergency broadcast message..."
-                    rows={4}
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsBroadcastOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleBroadcast} className="bg-red-600 hover:bg-red-700">
-                    <Megaphone className="w-4 h-4 mr-2" />
-                    Broadcast
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
       {/* Communication Channels */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="p-6 text-center">
+      {/* Contact Information Section */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+        {/* Emergency Hotline */}
+        <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <Phone className="w-6 h-6 text-red-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Emergency Hotline</h3>
+          <p className="text-sm text-gray-600 mb-2">24×7 Disaster Response Helpline</p>
+          <p className="text-base font-bold text-red-600">+91-1078 / 011-26701728</p>
+        </Card>
+
+        {/* Control Room Email */}
+        <Card className="p-6 text-center hover:shadow-lg transition-shadow">
           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <Radio className="w-6 h-6 text-blue-500" />
+            <Mail className="w-6 h-6 text-blue-600" />
           </div>
-          <h3 className="text-lg text-gray-900 mb-1">Radio Network</h3>
-          <p className="text-sm text-gray-600 mb-3">Emergency radio communications</p>
-          <Badge className="bg-green-100 text-green-700">ONLINE</Badge>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Control Room Email</h3>
+          <p className="text-sm text-gray-600 mb-2">Send incident or alert details</p>
+          <p className="text-base font-bold text-blue-600">ndrfhq@ndma.gov.in</p>
         </Card>
 
-        <Card className="p-6 text-center">
+        {/* Office Address */}
+        <Card className="p-6 text-center hover:shadow-lg transition-shadow">
           <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <Phone className="w-6 h-6 text-green-500" />
+            <Users className="w-6 h-6 text-green-600" />
           </div>
-          <h3 className="text-lg text-gray-900 mb-1">Telephone</h3>
-          <p className="text-sm text-gray-600 mb-3">Landline & mobile networks</p>
-          <Badge className="bg-green-100 text-green-700">ONLINE</Badge>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Headquarters</h3>
+          <p className="text-sm text-gray-600 mb-2">National Disaster Management Authority</p>
+          <p className="text-base font-bold text-green-700">NDMA Bhawan, New Delhi</p>
         </Card>
 
-        <Card className="p-6 text-center">
-          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <Zap className="w-6 h-6 text-purple-500" />
+        {/* Public Information Office */}
+        <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+            <Users className="w-6 h-6 text-yellow-600" />
           </div>
-          <h3 className="text-lg text-gray-900 mb-1">Satellite</h3>
-          <p className="text-sm text-gray-600 mb-3">Satellite communication</p>
-          <Badge className="bg-green-100 text-green-700">ONLINE</Badge>
-        </Card>
-
-        <Card className="p-6 text-center">
-          <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-            <Bell className="w-6 h-6 text-orange-500" />
-          </div>
-          <h3 className="text-lg text-gray-900 mb-1">Public Alert</h3>
-          <p className="text-sm text-gray-600 mb-3">Mass notification system</p>
-          <Badge className="bg-green-100 text-green-700">READY</Badge>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Public Information Office</h3>
+          <p className="text-sm text-gray-600 mb-2">For media and public inquiries</p>
+          <p className="text-base font-bold text-yellow-700">pio.ndma@nic.in</p>
         </Card>
       </div>
+
 
       {/* Message Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -393,7 +354,7 @@ export function CommunicationCenter() {
       </Card>
 
       {/* Messages List */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <h3 className="text-lg text-gray-900">Recent Messages</h3>
           {filteredMessages.map((message) => (
@@ -430,30 +391,6 @@ export function CommunicationCenter() {
           ))}
         </div>
 
-        {/* Online Users */}
-        <Card className="p-6">
-          <h3 className="text-lg text-gray-900 mb-4 flex items-center">
-            <Users className="w-5 h-5 mr-2" />
-            Online Personnel
-          </h3>
-          <div className="space-y-3">
-            {mockUsers.map((user) => (
-              <div key={user.id} className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-gray-600">{user.name.charAt(0)}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 truncate">{user.name}</p>
-                  <p className="text-xs text-gray-600 truncate">{user.role}</p>
-                </div>
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-              </div>
-            ))}
-          </div>
-          <Button variant="outline" size="sm" className="w-full mt-4">
-            View All Personnel
-          </Button>
-        </Card>
       </div>
 
       {/* Message Details Dialog */}
