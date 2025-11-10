@@ -72,9 +72,10 @@ export function IncidentReporting() {
         status: 'reported' as Incident['status']
       };
 
-      await api.incidents.create(incidentData);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await loadIncidents();
+      const createdIncident = await api.incidents.create(incidentData);
+      
+      // Update state immediately with the new incident
+      setIncidents(prevIncidents => [createdIncident, ...prevIncidents]);
 
       setNewIncident({
         title: '',

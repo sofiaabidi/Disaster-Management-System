@@ -64,8 +64,10 @@ export function EvacuationPlans() {
         status: 'inactive' as EvacuationPlan['status']
       };
 
-      await api.evacuationPlans.create(planData);
-      await loadPlans();
+      const createdPlan = await api.evacuationPlans.create(planData);
+      
+      // Update state immediately with the new plan
+      setPlans(prevPlans => [createdPlan, ...prevPlans]);
 
       setNewPlan({ name: '', area: '', capacity: 0 });
       setIsNewPlanOpen(false);

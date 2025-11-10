@@ -18,15 +18,26 @@ async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<
         if (!response.ok) {
             let errorMessage = `HTTP error! status: ${response.status}`;
             try {
-                const errorData = await response.json();
+                // Clone the response so we can read it without consuming the body
+                const responseClone = response.clone();
+                const errorData = await responseClone.json();
                 errorMessage = errorData.error || errorData.message || errorMessage;
             } catch (e) {
-                // If we can't parse error JSON, use default message
+                // If we can't parse error JSON, try to get text
+                try {
+                    const responseClone = response.clone();
+                    const text = await responseClone.text();
+                    if (text) {
+                        errorMessage = text;
+                    }
+                } catch {
+                    // If we can't read at all, use default message
+                }
             }
             throw new Error(errorMessage);
         }
 
-        // Parse the response
+        // Parse the response as JSON (our API always returns JSON)
         const data = await response.json();
         return data as T;
     } catch (error) {
@@ -68,18 +79,10 @@ export const alertsAPI = {
     },
 
     create: async (data: CreateAlertData) => {
-        try {
-            const response = await apiCall<Alert>('/alerts', {
-                method: 'POST',
-                body: JSON.stringify(data),
-            });
-            // Add a small delay to ensure backend processes the request
-            await new Promise(resolve => setTimeout(resolve, 100));
-            return response;
-        } catch (error) {
-            console.error('Error creating alert:', error);
-            throw error;
-        }
+        return apiCall<Alert>('/alerts', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
     },
     update: async (id: string, data: Partial<Alert>) => {
         return apiCall<{ message: string }>(`/alerts/${id}`, {

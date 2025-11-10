@@ -46,7 +46,7 @@ export function WeatherMonitoring() {
     } catch (err) {
       console.error('Error fetching weather:', err);
       setError('Failed to load weather data. Using default data.');
-      // Fallback to default data
+      // Fallback to default data with AQI, UV, and sun times
       setWeatherData({
         location: location,
         temperature: 28,
@@ -55,7 +55,21 @@ export function WeatherMonitoring() {
         visibility: 8,
         condition: 'Partly Cloudy',
         alerts: [],
-        forecast: []
+        forecast: [],
+        aqi: {
+          overall: 120,
+          pm25: 55,
+          pm10: 105,
+          level: 'Moderate'
+        },
+        uvIndex: {
+          value: 7,
+          level: 'High'
+        },
+        sunTimes: {
+          sunrise: '06:30 AM',
+          sunset: '06:15 PM'
+        }
       });
     } finally {
       setLoading(false);
@@ -320,30 +334,40 @@ export function WeatherMonitoring() {
         <Card className="p-6">
           <h3 className="text-lg text-gray-900 mb-4">Air Quality Index</h3>
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>PM2.5</span>
-                <span>45 µg/m³</span>
-              </div>
-              <Progress value={45} className="h-2" />
-              <div className="text-xs text-gray-600 mt-1">Moderate</div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>PM10</span>
-                <span>82 µg/m³</span>
-              </div>
-              <Progress value={65} className="h-2" />
-              <div className="text-xs text-gray-600 mt-1">Unhealthy</div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Overall AQI</span>
-                <span>92</span>
-              </div>
-              <Progress value={60} className="h-2" />
-              <div className="text-xs text-gray-600 mt-1">Moderate</div>
-            </div>
+            {weatherData.aqi ? (
+              <>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>PM2.5</span>
+                    <span>{weatherData.aqi.pm25} µg/m³</span>
+                  </div>
+                  <Progress value={Math.min(weatherData.aqi.pm25 * 2, 100)} className="h-2" />
+                  <div className="text-xs text-gray-600 mt-1">
+                    {weatherData.aqi.pm25 < 50 ? 'Good' : weatherData.aqi.pm25 < 100 ? 'Moderate' : 'Unhealthy'}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>PM10</span>
+                    <span>{weatherData.aqi.pm10} µg/m³</span>
+                  </div>
+                  <Progress value={Math.min(weatherData.aqi.pm10, 100)} className="h-2" />
+                  <div className="text-xs text-gray-600 mt-1">
+                    {weatherData.aqi.pm10 < 50 ? 'Good' : weatherData.aqi.pm10 < 100 ? 'Moderate' : 'Unhealthy'}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Overall AQI</span>
+                    <span>{weatherData.aqi.overall}</span>
+                  </div>
+                  <Progress value={Math.min((weatherData.aqi.overall / 300) * 100, 100)} className="h-2" />
+                  <div className="text-xs text-gray-600 mt-1">{weatherData.aqi.level}</div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-4 text-gray-500">AQI data not available</div>
+            )}
           </div>
         </Card>
 
@@ -351,28 +375,46 @@ export function WeatherMonitoring() {
         <Card className="p-6">
           <h3 className="text-lg text-gray-900 mb-4">UV Index & Solar Data</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl text-gray-900">7</div>
-                <div className="text-sm text-gray-600">UV Index</div>
-              </div>
-              <Badge className="bg-orange-100 text-orange-700 border-orange-200">
-                HIGH
-              </Badge>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <div className="text-gray-600">Sunrise</div>
-                <div className="text-gray-900">06:42 AM</div>
-              </div>
-              <div>
-                <div className="text-gray-600">Sunset</div>
-                <div className="text-gray-900">06:15 PM</div>
-              </div>
-            </div>
-            <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
-              ⚠️ High UV levels - protective measures recommended
-            </div>
+            {weatherData.uvIndex ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl text-gray-900">{weatherData.uvIndex.value}</div>
+                    <div className="text-sm text-gray-600">UV Index</div>
+                  </div>
+                  <Badge className={
+                    weatherData.uvIndex.level === 'Very High' || weatherData.uvIndex.level === 'Extreme'
+                      ? 'bg-red-100 text-red-700 border-red-200'
+                      : weatherData.uvIndex.level === 'High'
+                      ? 'bg-orange-100 text-orange-700 border-orange-200'
+                      : weatherData.uvIndex.level === 'Moderate'
+                      ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                      : 'bg-green-100 text-green-700 border-green-200'
+                  }>
+                    {weatherData.uvIndex.level.toUpperCase()}
+                  </Badge>
+                </div>
+                {weatherData.sunTimes && (
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-600">Sunrise</div>
+                      <div className="text-gray-900">{weatherData.sunTimes.sunrise}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600">Sunset</div>
+                      <div className="text-gray-900">{weatherData.sunTimes.sunset}</div>
+                    </div>
+                  </div>
+                )}
+                {weatherData.uvIndex.value >= 8 && (
+                  <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                    ⚠️ High UV levels - protective measures recommended
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-4 text-gray-500">UV Index data not available</div>
+            )}
           </div>
         </Card>
       </div>

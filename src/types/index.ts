@@ -90,6 +90,20 @@ export interface WeatherData {
   condition: string;
   alerts: string[];
   forecast: WeatherForecast[];
+  aqi?: {
+    overall: number;
+    pm25: number;
+    pm10: number;
+    level: string;
+  };
+  uvIndex?: {
+    value: number;
+    level: string;
+  };
+  sunTimes?: {
+    sunrise: string;
+    sunset: string;
+  };
 }
 
 export interface WeatherForecast {
