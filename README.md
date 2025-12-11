@@ -2,9 +2,8 @@
 
 A comprehensive web application for managing emergency responses, resources, and disaster preparedness. This system provides real-time monitoring, resource tracking, incident management, and communication tools for disaster management teams.
 
-**Original Design**: [Figma Design](https://www.figma.com/design/KJLBIlHHZzNX3Huuvww0f7/Disaster-Management-Webpage)
 
-## 🚀 Features
+##  Features
 
 - **Real-time Data Management**: Full CRUD operations with instant updates
 - **Weather Monitoring**: Dynamic weather data with AQI, UV index, and sunrise/sunset times
@@ -14,14 +13,14 @@ A comprehensive web application for managing emergency responses, resources, and
 - **Communication Center**: Internal messaging system
 - **Analytics Dashboard**: Comprehensive insights and statistics
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - Node.js (v18 or higher)
 - Python 3.8 or higher
 - MongoDB (local or cloud instance)
 - OpenWeatherMap API key (optional, for real-time weather data)
 
-## 🛠️ Installation & Setup
+##  Installation & Setup
 
 ### Frontend Setup
 
@@ -209,7 +208,7 @@ The backend will run on `http://localhost:5000`
 - Incidents by type breakdown
 - Visual charts and graphs
 
-## 🗄️ Database
+##  Database
 
 The application uses MongoDB to store:
 - User accounts and authentication data
@@ -221,7 +220,7 @@ The application uses MongoDB to store:
 - Messages
 - Weather data cache
 
-## 🔧 Technologies Used
+## Technologies Used
 
 ### Frontend
 - **React 18** - UI library
@@ -240,7 +239,7 @@ The application uses MongoDB to store:
 - **Flask-CORS** - Cross-origin resource sharing
 - **OpenWeatherMap API** - Weather data
 
-## 🌐 API Endpoints
+##  API Endpoints
 
 ### Authentication
 - `POST /api/auth/login` - User login/registration
@@ -286,7 +285,7 @@ The application uses MongoDB to store:
 ### Analytics
 - `GET /api/analytics` - Get analytics data
 
-## 📝 Environment Variables
+##  Environment Variables
 
 Create a `.env` file in the backend directory (optional):
 
@@ -295,7 +294,7 @@ MONGO_URI=mongodb://localhost:27017/
 OPENWEATHER_API_KEY=your_api_key_here
 ```
 
-## 🎨 Key Features
+##  Key Features
 
 - **Real-time Updates**: Data updates immediately without page refresh
 - **City-specific Weather Data**: AQI, UV index, and sun times vary by city
@@ -306,7 +305,7 @@ OPENWEATHER_API_KEY=your_api_key_here
 - **Session Management**: Persistent login sessions
 - **Password Security**: Password validation and visibility toggle
 
-## 🔒 Security Features
+##  Security Features
 
 - Password validation (8+ chars, uppercase, lowercase, number, special char)
 - Session-based authentication
@@ -314,7 +313,7 @@ OPENWEATHER_API_KEY=your_api_key_here
 - Input validation
 - Secure password handling
 
-## 📊 Data Management
+##  Data Management
 
 - All CRUD operations are fully functional
 - Data persists in MongoDB
@@ -327,6 +326,4 @@ OPENWEATHER_API_KEY=your_api_key_here
 This is a disaster management system project. Feel free to contribute improvements and new features.
 
 
----
-
-**Note**: Make sure MongoDB is running before starting the backend server. The application will create the necessary database and collections automatically on first use.
+-
